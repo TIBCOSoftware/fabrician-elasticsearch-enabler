@@ -88,14 +88,16 @@ What about plug-ins
 --------------------------------------
 
 This enabler supports archives, plugins in .zip format will be considered as archive.
+
 They will be :
 - automatically installed and deployed
 - automatically updating URL to reach them
 
-As of 01/08/2013 - this is not yet implemented : 
+As of 01/08/2013 - this is not yet fully, really implemented, just announced as a teaser : 
 - HTTP routing will be updated to let you access to them (wherever they are _site or _plugs)
 - url detection and update
 - other fun stuff
+- plugins installation
 
 Runtime Context Variables
 --------------------------------------
