@@ -93,32 +93,32 @@ Take a look at the container.xml file in the src/main/resources/runtime/ subdire
 Common Variables 
 --------------------------------------
 (Change as Desired)
-* ES_DATA_DIR - path where the data files are located; 
+* ES_DATA_DIR : path where the data files are located; 
 			NOTE: for persistence across engine hosts, it is recommended you
                   specify a network-mounted directory for this variable.
                   Changing this might also affect other variables (e.g, CAPTURE_INCLUDES)              
 
-* HTTP_PORT - port where this elasticsearch node listens for connections
-* ES_CONF_DIR - path where the conf files are located;
+* HTTP_PORT : port where this elasticsearch node listens for connections
+* ES_CONF_DIR : path where the conf files are located;
 		      NOTE: for persistence across engine hosts, it is recommended you
                   specify a network-mounted directory for this variable.
-* ES_LOG_DIR - path where the logs files are located;
+* ES_LOG_DIR : path where the logs files are located;
 			NOTE: for persistence across engine hosts, it is recommended you
                   specify a network-mounted directory for this variable.
 
 Power Variables 
 --------------------------------------
 (Change If You Know What You're Doing)
-* CAPTURE_INCLUDES - common capture stuff, currently it includes everything
+* CAPTURE_INCLUDES : common capture stuff, currently it includes everything
                   under the standard data directory
 
 Internal Variables 
 --------------------------------------
 (Don't Change Unless Absolutely Needed)
-* ES_BASE_DIR - path where elasticsearch resides after installation - change
+* ES_BASE_DIR : path where elasticsearch resides after installation - change
                   CONTAINER_WORK_DIR instead
 
-* ES_HOST_IP - IP address where this instance listens for connections
+* ES_HOST_IP : IP address where this instance listens for connections
 
 
 ****************************************************************************************
