@@ -105,6 +105,7 @@ Common Variables
 * ES_LOG_DIR : path where the logs files are located;
 			NOTE: for persistence across engine hosts, it is recommended you
                   specify a network-mounted directory for this variable.
+* CLUSTER_NAME : Define the name of the cluster even if a single node is used
 
 Power Variables 
 --------------------------------------
@@ -122,3 +123,14 @@ Internal Variables
 
 
 ****************************************************************************************
+
+How to play with 
+--------------------------------------
+TIBCO Silver Fabric will publish access to the cluster thru :
+http://<SFinstanceHostname>:<SFPort>/<ClusterName>/
+this address will be resolve/translated to the endpoint directly (one of the ElasticSearch cluster node)
+
+Cool things to use against ElasticSearch
+--------------------------------------
+You could take a look at http://www.scrutmydocs.org/, which rely on an elasticsearch cluster for storing, finding, indexing documents
+

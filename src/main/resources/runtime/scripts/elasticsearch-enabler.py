@@ -332,9 +332,9 @@ def getComponentRunningConditionErrorMessage():
 ###
 def getStatistic(statName):
 
-    VarName = statName.rsplit(":", 1)[2]
-    KeyName = statName.rsplit(":", 1)[1]
-    IndexName = statName.rsplit(":", 1)[0]
+    VarName = statName.split(":")[2]
+    KeyName = statName.split(":")[1]
+    IndexName = statName.split(":")[0]
     logInfo("Getting Statistics for : "+KeyName+"."+VarName)    
     statValue = 0.0
     host = runtimeContext.getVariable('ES_HOST_IP').getValue()
