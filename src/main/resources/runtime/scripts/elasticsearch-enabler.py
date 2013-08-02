@@ -234,13 +234,14 @@ def doStart():
     args = shlex.split(ElasticNodeStart(bindir, pidfile))
     process = Popen(args,stdout=None,stderr=None,env=environ,shell=True)
     process.wait()
-    time.sleep(32)
+    time.sleep(10)
     logInfo("Start return Code : " + str(process.returncode))
    
 def doInstall(info):
     #### Manage HTTP routing
     endpoint = runtimeContext.getVariable('CLUSTER_NAME').getValue()
     try:
+        httpinfo = features.get('HTTP Support')
         httpinfo.setRouteDirectlyToEndpoints(True)
         httpinfo.setRoutingPrefix(endpoint)
     except Exception, err:
@@ -280,9 +281,19 @@ def doShutdown():
     url = "http://"+host+":"+port+endpoint
     req = urllib2.Request(url, data="")
     logInfo("shutdown : "+ url)
-    f = urllib2.urlopen(req)
-    dataRaw = f.read()
-    f.close()
+    try:
+        f = urllib2.urlopen(req)
+    except IOError, e:
+        if hasattr(e, 'reason'):
+            logInfo("Failed to reach the server")
+            logInfo("Reason :" + e.reason)
+        elif hasattr(e, 'code'):
+            logInfo("The server couldn\'t fullfill the request.")
+            logInfo("Error code :" + e.code)
+    else:    
+        dataRaw = f.read()
+        f.close()  
+
 #   status = response.status
 #    if ( status == 200 ):
 #        logInfo("Node status is OK")
@@ -321,20 +332,32 @@ def getComponentRunningConditionErrorMessage():
 ###
 def getStatistic(statName):
 
-    VarName = statName.rsplit(":", 1)[1]
-    KeyName = statName.rsplit(":", 1)[0]
+    VarName = statName.rsplit(":", 1)[2]
+    KeyName = statName.rsplit(":", 1)[1]
+    IndexName = statName.rsplit(":", 1)[0]
     logInfo("Getting Statistics for : "+KeyName+"."+VarName)    
     statValue = 0.0
     host = runtimeContext.getVariable('ES_HOST_IP').getValue()
     port = runtimeContext.getVariable('HTTP_PORT').getValue()
-    url = "http://"+host+":"+port+"/_nodes/_local/indices/stats"
+    url = "http://"+host+":"+port+"/_nodes/_local/"+IndexName+"/stats"
     ##params = urllib.urlencode({ 'firstName': 'John','lastName': 'Doe'})
     logInfo("Retrieving stat from : " + url)
     req = urllib2.Request(url, None, {'Content-Type': 'application/json'})
-    f = urllib2.urlopen(req)
-    dataRaw = f.read()
-    statValue = jpath.read(dataRaw, "$.nodes.*.indices."+KeyName+"."+VarName)
-    f.close() 
+    try:
+        f = urllib2.urlopen(req)
+    except IOError, e:
+        if hasattr(e, 'reason'):
+            logInfo("Failed to reach the server")
+            logInfo("Reason :" + e.reason)
+        elif hasattr(e, 'code'):
+            logInfo("The server couldn\'t fullfill the request.")
+            logInfo("Error code :" + e.code)
+            logInfo("Error with the URL ?, probably the index is unsupported ??")
+            logInfo("Supported values for statistic index: indices,os,fs,http,jvm,process,thread_pool,transport,network")
+    else:    
+        dataRaw = f.read()
+        statValue = jpath.read(dataRaw, "$.nodes.*."+IndexName+"."+KeyName+"."+VarName)
+        f.close() 
     return str(statValue[0])
 
 ###
@@ -347,16 +370,26 @@ def getNodeStatus():
     url = "http://"+host+":"+port+"/_nodes/_local"
     req = urllib2.Request(url, None, {'Content-Type': 'application/json'})
     logInfo("Retrieving Status from : "+ url)
-    f = urllib2.urlopen(req)
-    dataRaw = f.read()
-    status = jpath.read(dataRaw, "$.ok")
-    logInfo("status : "+ str(status[0]))
-    if (status):
-        logInfo("Node status is OK")
-        returnStatus = 0
-    else :
-        logInfo("Node status is KO")
-        returnStatus = 1
+    try:
+        f = urllib2.urlopen(req)
+    except IOError, e:
+        if hasattr(e, 'reason'):
+            logInfo("Failed to reach the server")
+            logInfo("Reason :" + e.reason)
+        elif hasattr(e, 'code'):
+            logInfo("The server couldn\'t fullfill the request.")
+            logInfo("Error code :" + e.code)
+    else:    
+        dataRaw = f.read()
+        status = jpath.read(dataRaw, "$.ok")
+        f.close() 
+        logInfo("status : "+ str(status))
+        if (status):
+            logInfo("Node status is OK")
+            returnStatus = 0
+        else :
+            logInfo("Node status is KO")
+            returnStatus = 1
     
     return returnStatus
 

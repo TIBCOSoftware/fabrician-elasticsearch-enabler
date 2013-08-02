@@ -207,22 +207,46 @@
     </supportedFeature>
 <statisticsProvider class="com.datasynapse.fabric.stats.provider.ContainerScriptStatisticsProvider">
 	<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
-		<property name="name" value="get:total"/>
+		<property name="name" value="indices:get:total"/>
 		<property name="default" value="true"/>
 		<property name="units" value="Gets"/>
 		<property name="description" value="The Total number of gets against this ElasticSearch instance"/>
 	</supportedStatistic>
 	<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
-		<property name="name" value="get:missing_time_in_millis"/>
+		<property name="name" value="indices:get:missing_time_in_millis"/>
 		<property name="default" value="true"/>
 		<property name="units" value="millis"/>
 		<property name="description" value="Time consumed by missing queries in millis"/>
 	</supportedStatistic>
 	<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
-		<property name="name" value="get:current"/>
+		<property name="name" value="indices:get:current"/>
 		<property name="default" value="true"/>
 		<property name="units" value="Gets"/>
 		<property name="description" value="The Current number of gets against this ElasticSearch instance"/>
-	</supportedStatistic>		
+	</supportedStatistic>
+		<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="os:mem:free_percent"/>
+		<property name="default" value="true"/>
+		<property name="units" value="%"/>
+		<property name="description" value="Free memory against this ElasticSearch instance"/>
+	</supportedStatistic>
+	<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="os:mem:used_percent"/>
+		<property name="default" value="true"/>
+		<property name="units" value="%"/>
+		<property name="description" value="Used memory against this ElasticSearch instance"/>
+	</supportedStatistic>
+	<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="os:mem:free_in_bytes"/>
+		<property name="default" value="true"/>
+		<property name="units" value="bytes"/>
+		<property name="description" value="Free memory against this ElasticSearch instance"/>
+	</supportedStatistic>
+	<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="os:mem:used_in_bytes"/>
+		<property name="default" value="true"/>
+		<property name="units" value="bytes"/>
+		<property name="description" value="Used memory against this ElasticSearch instance"/>
+	</supportedStatistic>				
 </statisticsProvider>	
 </container>
