@@ -68,8 +68,22 @@ What you can configure
 
 
 
+Engines requirements
+--------------------------------------
+Make sure to increase the number of open files descriptors on the machine (or for the user running elasticsearch). Setting it to 32k or even 64k is recommended.
+```bash
+# run this when loading the user profile
+ulimit -l unlimited
+# or you could edit this file /etc/security/limits.conf
+    <USERNAME> soft nofile 32000
+    <USERNAME> hard nofile 32000
+```
 
-
+On the engine Configuration in TIBCO SF, you shoul consider setting this
+```bash
+set -XX:+CMSClassUnloadingEnabled  -XX:MaxPermSize=256m
+set JVM HEAP from 192 mb to 512 mb
+```
 What about plug-ins
 --------------------------------------
 

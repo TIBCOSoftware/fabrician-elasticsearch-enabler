@@ -286,10 +286,10 @@ def doShutdown():
     except IOError, e:
         if hasattr(e, 'reason'):
             logInfo("Failed to reach the server")
-            logInfo("Reason :" + e.reason)
+            logInfo("Reason :" + str(e.reason))
         elif hasattr(e, 'code'):
             logInfo("The server couldn\'t fullfill the request.")
-            logInfo("Error code :" + e.code)
+            logInfo("Error code :" + str(e.code))
     else:    
         dataRaw = f.read()
         f.close()  
@@ -348,10 +348,10 @@ def getStatistic(statName):
     except IOError, e:
         if hasattr(e, 'reason'):
             logInfo("Failed to reach the server")
-            logInfo("Reason :" + e.reason)
+            logInfo("Reason :" + str(e.reason))
         elif hasattr(e, 'code'):
             logInfo("The server couldn\'t fullfill the request.")
-            logInfo("Error code :" + e.code)
+            logInfo("Error code :" + str(e.code))
             logInfo("Error with the URL ?, probably the index is unsupported ??")
             logInfo("Supported values for statistic index: indices,os,fs,http,jvm,process,thread_pool,transport,network")
     else:    
@@ -375,10 +375,10 @@ def getNodeStatus():
     except IOError, e:
         if hasattr(e, 'reason'):
             logInfo("Failed to reach the server")
-            logInfo("Reason :" + e.reason)
+            logInfo("Reason :" + str(e.reason))
         elif hasattr(e, 'code'):
             logInfo("The server couldn\'t fullfill the request.")
-            logInfo("Error code :" + e.code)
+            logInfo("Error code :" + str(e.code))
     else:    
         dataRaw = f.read()
         status = jpath.read(dataRaw, "$.ok")
