@@ -90,8 +90,9 @@ Take a look at the container.xml file in the src/main/resources/runtime/ subdire
 
 ****************************************************************************************
 
-Common Variables (Change as Desired)
+Common Variables 
 --------------------------------------
+(Change as Desired)
 * ES_DATA_DIR - path where the data files are located; 
 			NOTE: for persistence across engine hosts, it is recommended you
                   specify a network-mounted directory for this variable.
@@ -105,13 +106,15 @@ Common Variables (Change as Desired)
 			NOTE: for persistence across engine hosts, it is recommended you
                   specify a network-mounted directory for this variable.
 
-Power Variables (Change If You Know What You're Doing)
+Power Variables 
 --------------------------------------
+(Change If You Know What You're Doing)
 * CAPTURE_INCLUDES - common capture stuff, currently it includes everything
                   under the standard data directory
 
-Internal Variables (Don't Change Unless Absolutely Needed)
+Internal Variables 
 --------------------------------------
+(Don't Change Unless Absolutely Needed)
 * ES_BASE_DIR - path where elasticsearch resides after installation - change
                   CONTAINER_WORK_DIR instead
 
