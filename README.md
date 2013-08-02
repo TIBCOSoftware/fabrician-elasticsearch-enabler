@@ -15,7 +15,7 @@ Installation
 The ElasticSearch Enabler consists of an Enabler Runtime Grid Library and a Distribution 
 Grid Library. The Enabler Runtime contains information specific to a Silver Fabric 
 version that is used to integrate the Enabler, and the Distribution contains a binary 
-distribution of MySQL used for the Enabler. Installation of the ElasticSearch Enabler 
+distribution of ElasticSearch used for the Enabler. Installation of the ElasticSearch Enabler 
 involves copying these Grid Libraries to the 
 SF_HOME/webapps/livecluster/deploy/resources/gridlib directory on the Silver Fabric Broker. 
 
@@ -35,7 +35,7 @@ The Distribution Grid Library is created by performing the following steps:
        
 
 *****************************************************************************
-NOTE: as of now, only 64-bit linux is supported. 
+NOTE: As of now, only 64-bit linux has been tested !
 ******************************************************************************
 ```bash
 mvn package -Ddistribution.location=/home/you/Downloads/ \
@@ -54,6 +54,7 @@ cd src/main/assembly/distribution
 wget "https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-0.90.2.zip"
 unzip elasticsearch-0.90.2.zip
 rm -f elasticsearch-0.90.2.zip
+mv elasticsearch-0.90.2 elasticsearch
 zip -r elasticsearch-0.90.2-distribution.zip elasticsearch-0.90.2 grid-library.xml
 ```
 
@@ -74,13 +75,13 @@ What about plug-ins
 
 This enabler supports archives, plugins in .zip format will be considered as archive.
 They will be :
-- automatically detected
-- automatically installed
+- automatically installed and deployed
+- automatically updating URL to reach them
 
-As of 27/06/2013 - this is not yet implemented : 
+As of 01/08/2013 - this is not yet implemented : 
 - HTTP routing will be updated to let you access to them (wherever they are _site or _plugs)
 - url detection and update
-
+- other fun stuff
 
 Runtime Context Variables
 --------------------------------------
