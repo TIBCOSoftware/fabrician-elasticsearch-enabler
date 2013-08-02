@@ -1,0 +1,122 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.fabrician.enabler</groupId>
+    <artifactId>elasticsearch</artifactId>
+    <name>ElasticSearch Enabler</name>
+    <packaging>pom</packaging>
+    <version>1.0</version>
+    <description></description>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <distribution.basename>elasticsearch-0.90.2</distribution.basename>
+        <distribution.type>zip</distribution.type>
+        <distribution.os>all</distribution.os>
+        <distribution.version>0.90.2</distribution.version>
+        <distribution.location>/downloads/</distribution.location>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.4</version>
+                <executions>
+                    <execution>
+                        <id>runtime</id>
+                        <configuration>
+                            <appendAssemblyId>false</appendAssemblyId>
+                            <finalName>${project.artifactId}-${project.version}-enabler-gridlib</finalName>
+                            <descriptors>
+                                <descriptor>src/main/assembly/runtime.xml</descriptor>
+                            </descriptors>
+                            <attach>true</attach>
+                            <appendAssemblyId>false</appendAssemblyId>
+                        </configuration>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    <profiles>
+        <profile>
+            <activation>
+                <property>
+                    <name>distribution.location</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>1.7</version>
+                        <executions>
+                            <execution>
+                                <id>unpack-distribution</id>
+                                <phase>process-resources</phase>  
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <tasks>
+                                        <ant target="unpack" inheritRefs="true">
+                                            <property name="source" value="${distribution.location}/${distribution.basename}.${distribution.type}"/>
+                                            <property name="target" value="${project.build.directory}/tmp"/> 
+                                        </ant>    
+                                    </tasks>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    
+                    <plugin>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <version>2.4</version>
+                        <executions>
+                            <execution>
+                                <id>distribution</id>
+                                <configuration>
+                                    <appendAssemblyId>false</appendAssemblyId>
+                                    <finalName>${project.artifactId}-${distribution.os}-${distribution.version}-distribution-gridlib</finalName>
+                                    <descriptors>
+                                         <descriptor>src/main/assembly/distribution.xml</descriptor>
+                                    </descriptors>
+                                    <attach>false</attach>
+                                </configuration>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>single</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+
+        </profile>
+    </profiles>
+    <dependencies>
+    	<dependency>
+    		<groupId>com.jayway.jsonpath</groupId>
+    		<artifactId>json-path</artifactId>
+    		<version>0.8.1</version>
+		</dependency>
+		
+		<dependency>
+    		<groupId>net.minidev</groupId>
+    		<artifactId>json-smart</artifactId>
+    		<version>1.1.1</version>
+		</dependency>
+ 
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.6</version>
+        </dependency>
+ 
+	</dependencies>
+</project>

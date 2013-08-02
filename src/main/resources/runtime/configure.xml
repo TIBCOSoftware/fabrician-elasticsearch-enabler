@@ -1,0 +1,8 @@
+<containerConfig>
+  <configFiles baseDir="." include="elasticsearch/config/elasticsearch.yml">
+    <velocity enabled="true"/>
+  </configFiles>
+    <configFiles baseDir="." include="elasticsearch/config/logging.yml">
+    <velocity enabled="true"/>
+  </configFiles>
+</containerConfig>

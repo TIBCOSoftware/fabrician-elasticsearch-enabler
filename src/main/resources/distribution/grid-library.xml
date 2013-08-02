@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grid-library os="${distribution.os}">
+    <grid-library-name>elasticsearch-distribution</grid-library-name>
+    <grid-library-version>${distribution.version}</grid-library-version>
+</grid-library>

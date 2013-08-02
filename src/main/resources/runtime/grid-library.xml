@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grid-library os="all">
+  <grid-library-name>elasticsearch-enabler</grid-library-name>
+  <grid-library-version>1.0</grid-library-version>
+     <dependency>
+       <grid-library-name>elasticsearch-distribution</grid-library-name>
+       <grid-library-version>${distribution.version}</grid-library-version>
+   </dependency>
+    <jar-path>
+        <pathelement>ds_jars</pathelement>
+    </jar-path>
+</grid-library>	

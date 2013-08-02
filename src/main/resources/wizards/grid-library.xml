@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grid-library os="all">
+        <grid-library-name>elasticsearch-config-server-domain-type</grid-library-name>
+        <grid-library-version>1.0.0</grid-library-version>
+        <jar-path>
+                <pathelement>ds_jars</pathelement>
+        </jar-path>
+</grid-library>
