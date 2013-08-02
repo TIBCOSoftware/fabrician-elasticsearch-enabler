@@ -293,21 +293,6 @@ def doShutdown():
     else:    
         dataRaw = f.read()
         f.close()  
-
-#   status = response.status
-#    if ( status == 200 ):
-#        logInfo("Node status is OK")
-#        returnStatus = 0
-#    else :
-#        logInfo("Node status is KO")
-#        logInfo("Error Status : "+ str(status) + " with reason : " + response.reason)
-#        returnStatus = 1
-#    bindir = os.path.join(basedir , "bin")
-#    pidfile = os.path.join(workdir, "elasticsearch.pid")
-#    runCommand(ElasticNodeStop(pidfile), shell=True)
-#    begin = System.currentTimeMillis()
-#    proxy.doShutdown()
-#    proxy.getContainer().waitForShutdown(begin)
     
 # running condition
 def getContainerRunningConditionPollPeriod():
