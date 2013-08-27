@@ -76,7 +76,7 @@
     
         <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
             <property name="name" value="DELETE_RUNTIME_DIR_ON_SHUTDOWN"/>
-            <property name="value" value="false"/>
+            <property name="value" value="true"/>
         </variable>
         <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
             <property name="name" value="COPY_DEPENDENCIES_TO_WORK_DIRECTORY"/>
@@ -205,48 +205,438 @@
         <property name="description" value="Support for managing archives"/>
         <property name="infoClass" value="com.datasynapse.fabric.domain.featureinfo.ArchiveManagementFeatureInfo"/>
     </supportedFeature>
-<statisticsProvider class="com.datasynapse.fabric.stats.provider.ContainerScriptStatisticsProvider">
-	<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+<statisticsProvider>    
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
 		<property name="name" value="indices:get:total"/>
 		<property name="default" value="true"/>
-		<property name="units" value="Gets"/>
-		<property name="description" value="The Total number of gets against this ElasticSearch instance"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance indices:get:total stats"/>
 	</supportedStatistic>
-	<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:get:time_in_millis"/>
+		<property name="default" value="true"/>
+		<property name="units" value="ms"/>
+		<property name="description" value="This ElasticSearch instance indices:get:time_in_millis stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:get:exists_total"/>
+		<property name="default" value="true"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance indices:get:exists_total stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:get:exists_time_in_millis"/>
+		<property name="default" value="true"/>
+		<property name="units" value="ms"/>
+		<property name="description" value="This ElasticSearch instance indices:get:exists_time_in_millis stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:get:missing_total"/>
+		<property name="default" value="true"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance indices:get:missing_total stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
 		<property name="name" value="indices:get:missing_time_in_millis"/>
 		<property name="default" value="true"/>
-		<property name="units" value="millis"/>
-		<property name="description" value="Time consumed by missing queries in millis"/>
+		<property name="units" value="ms"/>
+		<property name="description" value="This ElasticSearch instance indices:get:missing_time_in_millis stats"/>
 	</supportedStatistic>
-	<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
 		<property name="name" value="indices:get:current"/>
 		<property name="default" value="true"/>
-		<property name="units" value="Gets"/>
-		<property name="description" value="The Current number of gets against this ElasticSearch instance"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance indices:get:current stats"/>
 	</supportedStatistic>
-		<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
-		<property name="name" value="os:mem:free_percent"/>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:search:open_contexts"/>
 		<property name="default" value="true"/>
-		<property name="units" value="%"/>
-		<property name="description" value="Free memory against this ElasticSearch instance"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance indices:search:open_contexts stats"/>
 	</supportedStatistic>
-	<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
-		<property name="name" value="os:mem:used_percent"/>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:search:query_total"/>
 		<property name="default" value="true"/>
-		<property name="units" value="%"/>
-		<property name="description" value="Used memory against this ElasticSearch instance"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance indices:search:query_total stats"/>
 	</supportedStatistic>
-	<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:search:query_time_in_millis"/>
+		<property name="default" value="true"/>
+		<property name="units" value="ms"/>
+		<property name="description" value="This ElasticSearch instance indices:search:query_time_in_millis stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:search:query_current"/>
+		<property name="default" value="true"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance indices:search:query_current stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:search:fetch_total"/>
+		<property name="default" value="true"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance indices:search:fetch_total stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:search:fetch_time_in_millis"/>
+		<property name="default" value="true"/>
+		<property name="units" value="ms"/>
+		<property name="description" value="This ElasticSearch instance indices:search:fetch_time_in_millis stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:search:fetch_current"/>
+		<property name="default" value="true"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance indices:search:fetch_current stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:fielddata:memory_size_in_bytes"/>
+		<property name="default" value="true"/>
+		<property name="units" value="bytes"/>
+		<property name="description" value="This ElasticSearch instance indices:fielddata:memory_size_in_bytes stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:fielddata:evictions"/>
+		<property name="default" value="true"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance indices:fielddata:evictions stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:id_cache:memory_size_in_bytes"/>
+		<property name="default" value="true"/>
+		<property name="units" value="bytes"/>
+		<property name="description" value="This ElasticSearch instance indices:id_cache:memory_size_in_bytes stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:filter_cache:memory_size_in_bytes"/>
+		<property name="default" value="true"/>
+		<property name="units" value="bytes"/>
+		<property name="description" value="This ElasticSearch instance indices:filter_cache:memory_size_in_bytes stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:filter_cache:evictions"/>
+		<property name="default" value="true"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance indices:filter_cache:evictions stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:warmer:current"/>
+		<property name="default" value="true"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance indices:warmer:current stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:warmer:total"/>
+		<property name="default" value="true"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance indices:warmer:total stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:warmer:total_time_in_millis"/>
+		<property name="default" value="true"/>
+		<property name="units" value="ms"/>
+		<property name="description" value="This ElasticSearch instance indices:warmer:total_time_in_millis stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:flush:total"/>
+		<property name="default" value="true"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance indices:flush:total stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:flush:total_time_in_millis"/>
+		<property name="default" value="true"/>
+		<property name="units" value="ms"/>
+		<property name="description" value="This ElasticSearch instance indices:flush:total_time_in_millis stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:refresh:total"/>
+		<property name="default" value="true"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance indices:refresh:total stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:refresh:total_time_in_millis"/>
+		<property name="default" value="true"/>
+		<property name="units" value="ms"/>
+		<property name="description" value="This ElasticSearch instance indices:refresh:total_time_in_millis stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:docs:count"/>
+		<property name="default" value="true"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance indices:docs:count stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:docs:deleted"/>
+		<property name="default" value="true"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance indices:docs:deleted stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:store:size_in_bytes"/>
+		<property name="default" value="true"/>
+		<property name="units" value="bytes"/>
+		<property name="description" value="This ElasticSearch instance indices:store:size_in_bytes stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:store:throttle_time_in_millis"/>
+		<property name="default" value="true"/>
+		<property name="units" value="ms"/>
+		<property name="description" value="This ElasticSearch instance indices:store:throttle_time_in_millis stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:indexing:index_total"/>
+		<property name="default" value="true"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance indices:indexing:index_total stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:indexing:index_time_in_millis"/>
+		<property name="default" value="true"/>
+		<property name="units" value="ms"/>
+		<property name="description" value="This ElasticSearch instance indices:indexing:index_time_in_millis stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:indexing:index_current"/>
+		<property name="default" value="true"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance indices:indexing:index_current stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:indexing:delete_total"/>
+		<property name="default" value="true"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance indices:indexing:delete_total stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:indexing:delete_time_in_millis"/>
+		<property name="default" value="true"/>
+		<property name="units" value="ms"/>
+		<property name="description" value="This ElasticSearch instance indices:indexing:delete_time_in_millis stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:indexing:delete_current"/>
+		<property name="default" value="true"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance indices:indexing:delete_current stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:search:open_contexts"/>
+		<property name="default" value="true"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance indices:search:open_contexts stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:search:query_total"/>
+		<property name="default" value="true"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance indices:search:query_total stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:search:query_time_in_millis"/>
+		<property name="default" value="true"/>
+		<property name="units" value="ms"/>
+		<property name="description" value="This ElasticSearch instance indices:search:query_time_in_millis stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:search:query_current"/>
+		<property name="default" value="true"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance indices:search:query_current stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:search:fetch_total"/>
+		<property name="default" value="true"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance indices:search:fetch_total stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:search:fetch_time_in_millis"/>
+		<property name="default" value="true"/>
+		<property name="units" value="ms"/>
+		<property name="description" value="This ElasticSearch instance indices:search:fetch_time_in_millis stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:search:fetch_current"/>
+		<property name="default" value="true"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance indices:search:fetch_current stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:merges:current"/>
+		<property name="default" value="true"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance indices:merges:current stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:merges:current_docs"/>
+		<property name="default" value="true"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance indices:merges:current_docs stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:merges:current_size_in_bytes"/>
+		<property name="default" value="true"/>
+		<property name="units" value="bytes"/>
+		<property name="description" value="This ElasticSearch instance indices:merges:current_size_in_bytes stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:merges:total"/>
+		<property name="default" value="true"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance indices:merges:total stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:merges:total_time_in_millis"/>
+		<property name="default" value="true"/>
+		<property name="units" value="ms"/>
+		<property name="description" value="This ElasticSearch instance indices:merges:total_time_in_millis stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:merges:total_docs"/>
+		<property name="default" value="true"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance indices:merges:total_docs stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="indices:merges:total_size_in_bytes"/>
+		<property name="default" value="true"/>
+		<property name="units" value="bytes"/>
+		<property name="description" value="This ElasticSearch instance indices:merges:total_size_in_bytes stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="os:cpu:sys"/>
+		<property name="default" value="true"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance os:cpu:sys stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="os:cpu:user"/>
+		<property name="default" value="false"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance os:cpu:user stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="os:cpu:idle"/>
+		<property name="default" value="false"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance os:cpu:idle stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="os:cpu:stolen"/>
+		<property name="default" value="false"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance os:cpu:stolen stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
 		<property name="name" value="os:mem:free_in_bytes"/>
 		<property name="default" value="true"/>
 		<property name="units" value="bytes"/>
-		<property name="description" value="Free memory against this ElasticSearch instance"/>
+		<property name="description" value="This ElasticSearch instance os:mem:free_in_bytes stats"/>
 	</supportedStatistic>
-	<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
 		<property name="name" value="os:mem:used_in_bytes"/>
 		<property name="default" value="true"/>
 		<property name="units" value="bytes"/>
-		<property name="description" value="Used memory against this ElasticSearch instance"/>
-	</supportedStatistic>				
+		<property name="description" value="This ElasticSearch instance os:mem:used_in_bytes stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="os:mem:free_percent"/>
+		<property name="default" value="true"/>
+		<property name="units" value="%"/>
+		<property name="description" value="This ElasticSearch instance os:mem:free_percent stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="os:mem:used_percent"/>
+		<property name="default" value="true"/>
+		<property name="units" value="%"/>
+		<property name="description" value="This ElasticSearch instance os:mem:used_percent stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="os:mem:actual_free_in_bytes"/>
+		<property name="default" value="true"/>
+		<property name="units" value="bytes"/>
+		<property name="description" value="This ElasticSearch instance os:mem:actual_free_in_bytes stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="os:mem:actual_used_in_bytes"/>
+		<property name="default" value="true"/>
+		<property name="units" value="bytes"/>
+		<property name="description" value="This ElasticSearch instance os:mem:actual_used_in_bytes stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="os:swap:used_in_bytes"/>
+		<property name="default" value="true"/>
+		<property name="units" value="bytes"/>
+		<property name="description" value="This ElasticSearch instance os:swap:used_in_bytes stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="os:swap:free_in_bytes"/>
+		<property name="default" value="true"/>
+		<property name="units" value="bytes"/>
+		<property name="description" value="This ElasticSearch instance os:swap:free_in_bytes stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="network:tcp:active_opens"/>
+		<property name="default" value="true"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance network:tcp:active_opens stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="network:tcp:passive_opens"/>
+		<property name="default" value="true"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance network:tcp:passive_opens stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="network:tcp:curr_estab"/>
+		<property name="default" value="true"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance network:tcp:curr_estab stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="network:tcp:in_errs"/>
+		<property name="default" value="true"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance network:tcp:in_errs stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="network:tcp:attempt_fails"/>
+		<property name="default" value="true"/>
+		<property name="units" value=""/>
+		<property name="description" value="This ElasticSearch instance network:tcp:attempt_fails stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="process:open_file_descriptors"/>
+		<property name="default" value="true"/>
+		<property name="units" value="fd"/>
+		<property name="description" value="This ElasticSearch instance process:open_file_descriptors stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="process:cpu:percent"/>
+		<property name="default" value="true"/>
+		<property name="units" value="%"/>
+		<property name="description" value="This ElasticSearch instance process:cpu:percent stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="process:cpu:sys_in_millis"/>
+		<property name="default" value="true"/>
+		<property name="units" value="ms"/>
+		<property name="description" value="This ElasticSearch instance process:cpu:sys_in_millis stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="process:cpu:user_in_millis"/>
+		<property name="default" value="true"/>
+		<property name="units" value="ms"/>
+		<property name="description" value="This ElasticSearch instance process:cpu:user_in_millis stats"/>
+	</supportedStatistic>
+<supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
+		<property name="name" value="process:cpu:total_in_millis"/>
+		<property name="default" value="true"/>
+		<property name="units" value="ms"/>
+		<property name="description" value="This ElasticSearch instance process:cpu:total_in_millis stats"/>
+	</supportedStatistic>
 </statisticsProvider>	
 </container>

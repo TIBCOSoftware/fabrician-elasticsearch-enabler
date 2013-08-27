@@ -61,11 +61,14 @@ zip -r elasticsearch-0.90.2-distribution.zip elasticsearch-0.90.2 grid-library.x
 Then upload this distribution to the Tibco Silver Fabric Manager
 
 
-What you can configure
+Supported Features
 --------------------------------------
 
-
-
+- [ ] ElasticSearch _site plugins detection
+- [x] ElasticSearch multicast clustering support
+- [ ] ElasticSearch unicast clustering support
+- [x] ElasticSearch statistics support
+- [x] ElasticSearch offline plugins support
 
 
 Engines requirements
@@ -89,11 +92,18 @@ What about plug-ins
 
 This enabler supports archives, plugins in .zip format will be considered as archive.
 
+simply zip each plugins (folder) under your plugins directory installation
+
+```bash
+cd $ES_HOME/plugins
+zip -r HQ.zip HQ
+```
+
 They will be :
 - automatically installed and deployed
 - automatically updating URL to reach them
 
-As of 01/08/2013 - this is not yet fully, really implemented, just announced as a teaser : 
+NOTE TO MYSELF = As of 01/08/2013 - this is not yet fully, really implemented, just announced as a teaser ;-) 
 - HTTP routing will be updated to let you access to them (wherever they are _site or _plugs)
 - url detection and update
 - other fun stuff

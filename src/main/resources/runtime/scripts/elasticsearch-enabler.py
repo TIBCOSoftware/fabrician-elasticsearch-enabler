@@ -15,6 +15,7 @@ from com.datasynapse.fabric.admin import AdminManager, ComponentAdmin
 from com.datasynapse.fabric.admin.info import GridlibInfo
 
 from jarray import array
+from java.lang import StringBuilder
 import java.lang.System
 from subprocess import Popen, PIPE, STDOUT, call
 
@@ -96,7 +97,7 @@ def createDir(directory):
 
 
 
-#####    
+#####
 #ElasticSearch Plugins installation
 #Requires the zip file under archives
 #####
@@ -131,9 +132,9 @@ def ElasticNodeStart(bindir, pidfile):
         CMD = ELASTIC_CMD + ELASTIC_ARGS
     else:
         ELASTIC_CMD = os.path.join(bindir,"elasticsearch ")
-        CMD = ELASTIC_CMD + ELASTIC_ARGS    
+        CMD = ELASTIC_CMD + ELASTIC_ARGS
     logInfo("StartUp Command to be used : " + CMD)
-    return CMD      
+    return CMD
  
 def ElasticNodeStop(pidfile):
     UNIX_KILL_CMD = "kill -9"
@@ -146,17 +147,17 @@ def ElasticNodeStop(pidfile):
     pid = int(pids[0])
     
     if ContainerUtils.isWindows():
-        KILL_ARGS = " " + pid 
+        KILL_ARGS = " " + pid
         CMD = WIN_KILL_CMD + KILL_ARGS
     else:
         KILL_ARGS = " " + pid
-        CMD = UNIX_KILL_CMD + KILL_ARGS      
+        CMD = UNIX_KILL_CMD + KILL_ARGS
     logInfo("Shutdown Command to be used : " + CMD)
-    return CMD      
+    return CMD
  
 ####
 # undocumented, and untested...for later use
-####  
+####
 def doGraceFullRestart():
     host = runtimeContext.getVariable('ES_HOST_IP').getValue()
     port = runtimeContext.getVariable('HTTP_PORT').getValue()
@@ -169,15 +170,27 @@ def doGraceFullRestart():
     response.close
     return code
         
-# writes the message in the engine log
+###        
+# writes the message in the engine log as INFO level
+###
 def logInfo(msg):
-  logger.info("[ElasticSearch_Enabler] " + msg)
+    logger.info("[ElasticSearch_Enabler] " + msg)
+###        
+# writes the message in the engine log as FINER level
+###      
+def logFiner(msg):
+    logger.finer("[ElasticSearch_Enabler] " + msg)
+###        
+# writes the message in the engine log as SEVERE level
+###        
+def logSevere(msg):
+    logger.severe("[ElasticSearch_Enabler] " + msg)
 
 def doInit(additionalVariables):
 
 
     # create the data, tmp, and mysqld directories
-    workdir = runtimeContext.getVariable('CONTAINER_WORK_DIR').getValue() 
+    workdir = runtimeContext.getVariable('CONTAINER_WORK_DIR').getValue()
     basedir = runtimeContext.getVariable('ES_BASE_DIR').getValue()
     eshome = runtimeContext.addVariable(RuntimeContextVariable("ES_HOME", basedir, RuntimeContextVariable.ENVIRONMENT_TYPE, "ElasticSearch Home", False, RuntimeContextVariable.NO_INCREMENT))
     master = runtimeContext.addVariable(RuntimeContextVariable("FIRST_DEPLOYED_MASTER_ADDR", "", RuntimeContextVariable.STRING_TYPE, "Detected Master hostname", False, RuntimeContextVariable.NO_INCREMENT))
@@ -187,7 +200,7 @@ def doInit(additionalVariables):
     javahome = runtimeContext.getVariable('GRIDLIB_JAVA_HOME').getValue()
     runtimeContext.addVariable(RuntimeContextVariable("JAVA_HOME", javahome, RuntimeContextVariable.ENVIRONMENT_TYPE, "JAVA_HOME", False, RuntimeContextVariable.NO_INCREMENT))
     os.putenv("JAVA_HOME",javahome)
-    # Updating PATH variable for dependant enablers or apps running 
+    # Updating PATH variable for dependant enablers or apps running
     oldpath = os.getenv("PATH")
     path = bindir + ":" + os.path.join(javahome,"bin") + ":" + oldpath
     os.putenv("PATH",path)
@@ -215,12 +228,7 @@ def doInit(additionalVariables):
     logInfo("Creating the necessaries folders")
     for dir in defaultfolders :
         createDir(dir)
-    logInfo("Changing permission...")
-    call(["chmod", "-fR", "+x", workdir])
-    call(["chmod", "-fR", "+x", bindir])
-    call(["chmod", "-fR", "+x", datadir])
-    call(["chmod", "-fR", "+x", plugdir])
-    call(["chmod", "-fR", "+x", confdir])     
+        call(["chmod", "-fR", "+x", dir])
     proxy.doInit(additionalVariables)
 
 def doStart():
@@ -263,17 +271,17 @@ def doInstall(info):
                 doPlugInsInstall(archivePath, bindir)
             except Exception, err:
                 logInfo("Unexpected error: "+ str(sys.exc_info()[0]) +" "+ str(sys.exc_info()[1]))
-    proxy.doInstall(info)    
+    proxy.doInstall(info)
 
 ###
 # In case you want to do any particular action when uninstalling..
 ###
 def doUninstall():
-    print "doUninstall"    
+    print "doUninstall"
 
 ###
 # Shutdown and wait for the enabler to gracefully shutdown
-### 
+###
 def doShutdown():
     host = runtimeContext.getVariable('ES_HOST_IP').getValue()
     port = runtimeContext.getVariable('HTTP_PORT').getValue()
@@ -290,9 +298,9 @@ def doShutdown():
         elif hasattr(e, 'code'):
             logInfo("The server couldn\'t fullfill the request.")
             logInfo("Error code :" + str(e.code))
-    else:    
+    else:
         dataRaw = f.read()
-        f.close()  
+        f.close()
     
 # running condition
 def getContainerRunningConditionPollPeriod():
@@ -316,20 +324,28 @@ def getComponentRunningConditionErrorMessage():
 # Retrieve enabler metrics for indices
 ###
 def getStatistic(statName):
-
-    VarName = statName.split(":")[2]
-    KeyName = statName.split(":")[1]
-    IndexName = statName.split(":")[0]
-    logInfo("Getting Statistics for : "+KeyName+"."+VarName)    
-    statValue = 0.0
-    host = runtimeContext.getVariable('ES_HOST_IP').getValue()
-    port = runtimeContext.getVariable('HTTP_PORT').getValue()
-    url = "http://"+host+":"+port+"/_nodes/_local/"+IndexName+"/stats"
-    ##params = urllib.urlencode({ 'firstName': 'John','lastName': 'Doe'})
-    logInfo("Retrieving stat from : " + url)
-    req = urllib2.Request(url, None, {'Content-Type': 'application/json'})
+    #split stats path
+    __stat = statname.split(":")
+    __shortpath = False
+            
+    __indexname = __stat[0]
+    __keyname = __stat[1]
+            
+    if ( __stat.count() > 2 ):
+        __subkeyname = __stat[2]
+        __shortpath = False
+    else:
+        __shortpath = True
+            
+    logInfo("Getting Statistics for : "+statName)    
+    __statvalue = 0.0
+    __host = runtimeContext.getVariable('ES_HOST_IP').getValue()
+    __httpport = runtimeContext.getVariable('HTTP_PORT').getValue()
+    __url = "http://"+__host+":"+__httpport+"/_nodes/_local/"+__indexname+"/stats"
+    logInfo("Retrieving stat from : " + __url)
+    __req = urllib2.Request(url, None, {'Content-Type': 'application/json'})
     try:
-        f = urllib2.urlopen(req)
+        f = urllib2.urlopen(__req)
     except IOError, e:
         if hasattr(e, 'reason'):
             logInfo("Failed to reach the server")
@@ -339,11 +355,15 @@ def getStatistic(statName):
             logInfo("Error code :" + str(e.code))
             logInfo("Error with the URL ?, probably the index is unsupported ??")
             logInfo("Supported values for statistic index: indices,os,fs,http,jvm,process,thread_pool,transport,network")
-    else:    
+    else:
         dataRaw = f.read()
-        statValue = jpath.read(dataRaw, "$.nodes.*."+IndexName+"."+KeyName+"."+VarName)
-        f.close() 
-    return str(statValue[0])
+        if (shortPath):
+            __statvalue = jpath.read(dataRaw, "$.nodes.*."+__indexname+"."+__keyname)
+        else:
+            __statvalue = jpath.read(dataRaw, "$.nodes.*."+__indexname+"."+__keyname+"."+__subkeyname)
+        f.close()
+                 
+    return str(__statvalue[0])
 
 ###
 # Retrieve Status of this instance
@@ -364,10 +384,10 @@ def getNodeStatus():
         elif hasattr(e, 'code'):
             logInfo("The server couldn\'t fullfill the request.")
             logInfo("Error code :" + str(e.code))
-    else:    
+    else:
         dataRaw = f.read()
         status = jpath.read(dataRaw, "$.ok")
-        f.close() 
+        f.close()
         logInfo("status : "+ str(status))
         if (status):
             logInfo("Node status is OK")
