@@ -323,7 +323,7 @@ def getComponentRunningConditionErrorMessage():
 ###
 # Retrieve enabler metrics for indices
 ###
-def getStatistic(statName):
+def getStatistic(statname):
     #split stats path
     __stat = statname.split(":")
     __shortpath = False
@@ -337,7 +337,7 @@ def getStatistic(statName):
     else:
         __shortpath = True
             
-    logInfo("Getting Statistics for : "+statName)    
+    logInfo("Getting Statistics for : "+statname)    
     __statvalue = 0.0
     __host = runtimeContext.getVariable('ES_HOST_IP').getValue()
     __httpport = runtimeContext.getVariable('HTTP_PORT').getValue()
