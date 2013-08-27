@@ -205,7 +205,8 @@
         <property name="description" value="Support for managing archives"/>
         <property name="infoClass" value="com.datasynapse.fabric.domain.featureinfo.ArchiveManagementFeatureInfo"/>
     </supportedFeature>
-<statisticsProvider>    
+<statisticsProvider class="com.datasynapse.fabric.stats.provider.ContainerScriptStatisticsProvider">
+
 <supportedStatistic class="com.datasynapse.fabric.common.script.ScriptStatisticsMetadata">
 		<property name="name" value="indices:get:total"/>
 		<property name="default" value="true"/>
