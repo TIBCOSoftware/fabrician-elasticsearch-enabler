@@ -1,5 +1,5 @@
 ==========================================================================
-ElasticSearch 0.92.2  Enabler Guide
+ElasticSearch 0.90.2  Enabler Guide
 ==========================================================================
 Introduction
 --------------------------------------
@@ -41,11 +41,11 @@ NOTE: As of now, only 64-bit linux has been tested !
 mvn package -Ddistribution.location=/home/you/Downloads/ \
 -Ddistribution.basename=elasticsearch-0.90.2 \
 -Ddistribution.type=zip \
--Ddistribution.version=0.92.2 -Ddistribution.os=all
+-Ddistribution.version=0.90.2 -Ddistribution.os=all
 ```
 The distribution.location path should end in the appropriate path-separator for your operating system (either "/" or "\\")
 If running maven on Windows, make sure to to double-escape the backslash path separators for the 
-distribution.location property: -Ddistribution.location=C:\\Users\you\Downloads\\
+distribution.location property: -Ddistribution.location=C:\\Users\\you\\Downloads\\
 
 or you can do manually :
 
@@ -154,7 +154,7 @@ How to play with
 --------------------------------------
 TIBCO Silver Fabric will publish access to the cluster thru :
 http://<SFinstanceHostname>:<SFPort>/<ClusterName>/
-this address will be resolve/translated to the endpoint directly (one of the ElasticSearch cluster node)
+this address will be resolved/translated to the endpoint directly (one of the ElasticSearch cluster node)
 
 Cool things to use against ElasticSearch
 --------------------------------------

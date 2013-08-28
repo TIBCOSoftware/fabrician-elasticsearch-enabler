@@ -86,7 +86,7 @@
         </variable>
        	<variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
             <property name="name" value="ElasticSearch_DISTRIBUTION_VERSION"/>
-            <property name="value" value="0.92.2"/>
+            <property name="value" value="0.90.2"/>
             <property name="description" value="ElasticSerach Distribution Version to be used"/>
         </variable>
         <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
