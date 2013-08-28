@@ -5,11 +5,12 @@
 # In most instances, the license terms are contained in a file named license.txt.
 #
 
-from com.datasynapse.fabric.admin.info import AllocationInfo, ComponentInfo, EngineIdInfo
+from com.datasynapse.fabric.admin.info import AllocationInfo, ComponentInfo, EngineIdInfo, FabricEngineInfo, ComponentAllocationEntryInfo
 from com.datasynapse.fabric.util import GridlibUtils, ContainerUtils
 from com.datasynapse.fabric.common import RuntimeContextVariable, ActivationInfo
 from com.datasynapse.fabric.engine.managedprocess import ManagedProcess
 from com.datasynapse.fabric.container import Feature, Container
+from com.datasynapse.gridserver.admin import Property
 
 from com.datasynapse.fabric.admin import AdminManager, ComponentAdmin
 from com.datasynapse.fabric.admin.info import GridlibInfo
@@ -30,6 +31,7 @@ import urllib2, httplib
 import shutil
 import errno
 import shlex
+from java.util import Properties
 
 #######
     # add Json support to Jython (External Libs)
@@ -47,6 +49,21 @@ sys.path.append(os.path.join(jarpath,"ds_jars", "json-path-0.8.1.jar"))
 sys.path.append(os.path.join(jarpath,"ds_jars", "commons-lang-2.6.jar"))
 sys.path.append(os.path.join(jarpath,"ds_jars", "json-smart-1.1.1.jar"))
 from com.jayway.jsonpath import JsonPath as jpath
+
+
+
+#################################################################
+# the enabler will do the following steps :
+# doinit() : 
+# 1 - configure the system shell environment (PATH, LD_LIBRARY_PATH)
+# 2 - create all needed directories and files, correct permissions
+# 3 - start the node
+# 4 - extra configuration if needed (clustering supports, etc...)
+# 5 - deploy all provided plugins, discover urls for site plugins
+# 6 - check the health of this node
+# 7 - get stats
+# 8 -  stop nicely this node
+#################################################################
 
 
 #######
@@ -187,8 +204,6 @@ def logSevere(msg):
     logger.severe("[ElasticSearch_Enabler] " + msg)
 
 def doInit(additionalVariables):
-
-
     # create the data, tmp, and mysqld directories
     workdir = runtimeContext.getVariable('CONTAINER_WORK_DIR').getValue()
     basedir = runtimeContext.getVariable('ES_BASE_DIR').getValue()
@@ -224,7 +239,7 @@ def doInit(additionalVariables):
     pidfile = os.path.join(workdir, "elasticsearch.pid")
     call(["touch", pidfile])
     call(["chmod", "777", pidfile])
-    defaultfolders = [logdir, datadir, tempdir , confdir , plugdir]
+    defaultfolders = [logdir, datadir, tempdir , confdir , plugdir, bindir]
     logInfo("Creating the necessaries folders")
     for dir in defaultfolders :
         createDir(dir)
@@ -331,7 +346,7 @@ def getStatistic(statname):
     __indexname = __stat[0]
     __keyname = __stat[1]
             
-    if ( __stat.count() > 2 ):
+    if len(__stat) > 2:
         __subkeyname = __stat[2]
         __shortpath = False
     else:
@@ -343,7 +358,7 @@ def getStatistic(statname):
     __httpport = runtimeContext.getVariable('HTTP_PORT').getValue()
     __url = "http://"+__host+":"+__httpport+"/_nodes/_local/"+__indexname+"/stats"
     logInfo("Retrieving stat from : " + __url)
-    __req = urllib2.Request(url, None, {'Content-Type': 'application/json'})
+    __req = urllib2.Request(__url, None, {'Content-Type': 'application/json'})
     try:
         f = urllib2.urlopen(__req)
     except IOError, e:
@@ -357,7 +372,7 @@ def getStatistic(statname):
             logInfo("Supported values for statistic index: indices,os,fs,http,jvm,process,thread_pool,transport,network")
     else:
         dataRaw = f.read()
-        if (shortPath):
+        if (__shortpath):
             __statvalue = jpath.read(dataRaw, "$.nodes.*."+__indexname+"."+__keyname)
         else:
             __statvalue = jpath.read(dataRaw, "$.nodes.*."+__indexname+"."+__keyname+"."+__subkeyname)
