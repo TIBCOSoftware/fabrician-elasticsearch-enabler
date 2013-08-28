@@ -153,7 +153,7 @@ Internal Variables
 How to play with 
 --------------------------------------
 TIBCO Silver Fabric will publish access to the cluster thru :
-http://<SFinstanceHostname>:<SFPort>/<ClusterName>/
+http://\<FullyQualifiedSFinstanceHostname\>:\<SFPort\>/\<ClusterName\>/
 this address will be resolved/translated to the endpoint directly (one of the ElasticSearch cluster node)
 
 Cool things to use against ElasticSearch
