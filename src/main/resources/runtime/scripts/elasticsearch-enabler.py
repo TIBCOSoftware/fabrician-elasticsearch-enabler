@@ -119,9 +119,9 @@ def createDir(directory):
 #Requires the zip file under archives
 #####
 
-def doPlugInsInstall(plugins_distro_zip_path, bindir):
+def doPlugInsInstall(plugins_distro_zip_path, bindir, plugdir ):
     plugins_name = os.path.splitext(plugins_distro_zip_path)[0]
-    PLUGINS_ARGS = " -url file://"+ plugins_distro_zip_path + " -install " + plugins_name
+    PLUGINS_ARGS = " -url file://"+ plugins_distro_zip_path + " -install " + plugdir
     
     if ContainerUtils.isWindows():
         PLUGINS_CMD = os.path.join(bindir,"plugin.bat")
@@ -130,16 +130,7 @@ def doPlugInsInstall(plugins_distro_zip_path, bindir):
 
     CMD = PLUGINS_CMD + PLUGINS_ARGS
     logInfo("Command to be used : " + CMD)
-    try:
-        proc = Popen([CMD])
-        proc.wait()
-        procExitCode = proc.returncode
-        if (procExitCode == 0 ):
-            logInfo("[ "+ plugins_name + " ]" + " has been succesfully installed")
-        else:
-            logInfo("[ "+ plugins_name + " ]" + " installation failed, and exited with code " + procExitCode )
-    except Exception, err:
-        logInfo("Unexpected error: "+ str(sys.exc_info()[0]) +" "+ str(sys.exc_info()[1]))
+    return CMD
         
 def ElasticNodeStart(bindir, pidfile):
     ELASTIC_ARGS = "-p " + pidfile
@@ -204,6 +195,7 @@ def logSevere(msg):
     logger.severe("[ElasticSearch_Enabler] " + msg)
 
 def doInit(additionalVariables):
+    
     # create the data, tmp, and mysqld directories
     workdir = runtimeContext.getVariable('CONTAINER_WORK_DIR').getValue()
     basedir = runtimeContext.getVariable('ES_BASE_DIR').getValue()
@@ -244,7 +236,14 @@ def doInit(additionalVariables):
     for dir in defaultfolders :
         createDir(dir)
         call(["chmod", "-fR", "+x", dir])
+        
+        
+
+                
+                    
     proxy.doInit(additionalVariables)
+
+
 
 def doStart():
     ### getting values
@@ -252,8 +251,30 @@ def doStart():
     basedir = runtimeContext.getVariable('ES_BASE_DIR').getValue()
     bindir = os.path.join(basedir , "bin")
     pidfile = os.path.join(workdir, "elasticsearch.pid")
-    ### Starting Node
+    
+    #### Manage Plug ins
+    logInfo("Checking if there is any plugins to deploy...")
+    archiveinfo = features.get("Archive Management Support")
+    enginedir = runtimeContext.getVariable('ENGINE_WORK_DIR').getValue()
+    plugdir = runtimeContext.getVariable('ES_PLUGINS_DIR').getValue()
+    
     environ = os.environ.copy()
+    
+    
+    if archiveinfo:
+        for i in range(archiveinfo.getArchiveCount()):
+            archive = archiveinfo.getArchiveInfo(i)
+            archname = archive.getArchiveFilename()
+            logInfo("Installing Plugins " + archive.getArchiveFilename())
+            archivePath = os.path.join(enginedir, archiveinfo.getArchiveDirectory(), archname)
+            try:
+                args = shlex.split(doPlugInsInstall(archivePath, bindir, plugdir))
+                process = Popen(args,stdout=None,stderr=None,env=environ,shell=True)
+                process.wait()
+            except Exception, err:
+                logInfo("Unexpected error: "+ str(sys.exc_info()[0]) +" "+ str(sys.exc_info()[1]))
+    ### Starting Node
+    
     args = shlex.split(ElasticNodeStart(bindir, pidfile))
     process = Popen(args,stdout=None,stderr=None,env=environ,shell=True)
     process.wait()
@@ -270,22 +291,6 @@ def doInstall(info):
     except Exception, err:
         logInfo("Unexpected error: "+ str(sys.exc_info()[0]) +" "+ str(sys.exc_info()[1]))
             
-    #### Manage Plug ins
-    archiveinfo = features.get("Archive Management Support")
-    enginedir = runtimeContext.getVariable('ENGINE_WORK_DIR').getValue()
-    workdir = runtimeContext.getVariable('CONTAINER_WORK_DIR').getValue()
-    basedir = runtimeContext.getVariable('ES_BASE_DIR').getValue()
-    bindir = os.path.join(basedir , "bin")
-    if archiveinfo:
-        for i in range(archiveinfo.getArchiveCount()):
-            archive = archiveinfo.getArchiveInfo(i)
-            archname = archive.getArchiveFilename()
-            logInfo("Installing Plugins " + archive.getArchiveFilename())
-            archivePath = os.path.join(enginedir, archiveinfo.getArchiveDirectory(), archname)
-            try:
-                doPlugInsInstall(archivePath, bindir)
-            except Exception, err:
-                logInfo("Unexpected error: "+ str(sys.exc_info()[0]) +" "+ str(sys.exc_info()[1]))
     proxy.doInstall(info)
 
 ###
@@ -352,12 +357,12 @@ def getStatistic(statname):
     else:
         __shortpath = True
             
-    logInfo("Getting Statistics for : "+statname)    
+    logFiner("Getting Statistics for : "+statname)    
     __statvalue = 0.0
     __host = runtimeContext.getVariable('ES_HOST_IP').getValue()
     __httpport = runtimeContext.getVariable('HTTP_PORT').getValue()
     __url = "http://"+__host+":"+__httpport+"/_nodes/_local/"+__indexname+"/stats"
-    logInfo("Retrieving stat from : " + __url)
+    logFiner("Retrieving stat from : " + __url)
     __req = urllib2.Request(__url, None, {'Content-Type': 'application/json'})
     try:
         f = urllib2.urlopen(__req)
@@ -389,7 +394,7 @@ def getNodeStatus():
     port = runtimeContext.getVariable('HTTP_PORT').getValue()
     url = "http://"+host+":"+port+"/_nodes/_local"
     req = urllib2.Request(url, None, {'Content-Type': 'application/json'})
-    logInfo("Retrieving Status from : "+ url)
+    logFiner("Retrieving Status from : "+ url)
     try:
         f = urllib2.urlopen(req)
     except IOError, e:
@@ -403,12 +408,12 @@ def getNodeStatus():
         dataRaw = f.read()
         status = jpath.read(dataRaw, "$.ok")
         f.close()
-        logInfo("status : "+ str(status))
+        logFiner("status : "+ str(status))
         if (status):
-            logInfo("Node status is OK")
+            logFiner("Node status is OK")
             returnStatus = 0
         else :
-            logInfo("Node status is KO")
+            logFiner("Node status is KO")
             returnStatus = 1
     
     return returnStatus
