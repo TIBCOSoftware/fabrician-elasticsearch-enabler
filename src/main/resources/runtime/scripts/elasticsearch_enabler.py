@@ -113,13 +113,9 @@ def getVariableValue(name, value=None):
 
 def doInit(additionalVariables):
     logInfo("doInit:Enter")
-    try:
-        elastic = ElasticSearch(additionalVariables)
-        elasticRcv = RuntimeContextVariable("ELASTICSEARCH_NODE_OBJECT", elastic, RuntimeContextVariable.OBJECT_TYPE)
-        runtimeContext.addVariable(elasticRcv)
-    except:
-        type, value, traceback = sys.exc_info()
-        logSevere("Unexpected error in ELASTICSEARCH:doInit:" + `value`)
+    elastic = ElasticSearch(additionalVariables)
+    elasticRcv = RuntimeContextVariable("ELASTICSEARCH_NODE_OBJECT", elastic, RuntimeContextVariable.OBJECT_TYPE)
+    runtimeContext.addVariable(elasticRcv)
     logInfo("doInit:Exit")
     
 def doStart():
@@ -150,12 +146,8 @@ def doUninstall():
 
 def doShutdown():
     logInfo("doShutdown:Enter")
-    try:
-        elastic = getVariableValue("ELASTICSEARCH_NODE_OBJECT")
-        elastic.stopNode()
-    except:
-        type, value, traceback = sys.exc_info()
-        logSevere("Unexpected error in ElasticSearch:duShutDown:" + `value`)
+    elastic = getVariableValue("ELASTICSEARCH_NODE_OBJECT")
+    elastic.stopNode()
     logInfo("doShutdown:Enter")
     
 def getContainerRunningConditionPollPeriod():
@@ -163,17 +155,13 @@ def getContainerRunningConditionPollPeriod():
 
 def isContainerRunning():
     logInfo("isContainerRunning:Enter")
-    status = None
-    try:
-        elastic = getVariableValue("ELASTICSEARCH_NODE_OBJECT")
-        health = elastic.getNodeStatus()
-        if health == 0:
-            status = True
-        else:
-            status = False
-    except:
-        type, value, traceback = sys.exc_info()
-        logSevere("Unexpected error in ElasticSearch:getNodeStatus:" + `value`) 
+    status = False
+    elastic = getVariableValue("ELASTICSEARCH_NODE_OBJECT")
+    health = elastic.getNodeStatus()
+    if health == 0:
+        status = True
+    else:
+        status = False
     logInfo("isContainerRunning:Exit")             
     return status
 ####
@@ -197,75 +185,70 @@ def getStatistic(statName):
 class ElasticSearch:
     
     def __init__(self, additionalVariables):
-        try:
-            logInfo("__init__:Enter")
-            self.__workdir = getVariableValue('CONTAINER_WORK_DIR')
-            self.__basedir = getVariableValue('ES_BASE_DIR')
-            self.__eshome = runtimeContext.addVariable(RuntimeContextVariable("ES_HOME", self.__basedir, RuntimeContextVariable.ENVIRONMENT_TYPE, "ElasticSearch Home", False, RuntimeContextVariable.NO_INCREMENT))
-            self.__master = runtimeContext.addVariable(RuntimeContextVariable("FIRST_DEPLOYED_MASTER_ADDR", "", RuntimeContextVariable.STRING_TYPE, "Detected Master hostname", False, RuntimeContextVariable.NO_INCREMENT))
-            self.__bindir = os.path.join(self.__basedir , "bin")
-            self.__enginedir = getVariableValue('ENGINE_WORK_DIR')
-            self.__javahome = getVariableValue('GRIDLIB_JAVA_HOME')
-            
-            os.putenv("JAVA_HOME", self.__javahome)
-            
-            self.__path = os.getenv("PATH")
-            self.__UnixPath = self.__bindir + ":" + os.path.join(self.__javahome, "bin") + ":" + self.__path
-            os.putenv("PATH", self.__UnixPath)
-            
-            self.__ldd = os.getenv("LD_LIBRARY_PATH")
-            self.__UnixLibPath = self.__ldd +":"+ os.path.join(self.__javahome, "jre/lib/amd64/server")+":"+os.path.join(self.__javahome, "jre/lib/amd64/")+":"+os.path.join(self.__javahome, "jre/lib/ext")+":"+os.path.join(self.__javahome,"lib/")
-            os.putenv("LD_LIBRARY_PATH", self.__UnixLibPath)
+        logInfo("__init__:Enter")
+        self.__workdir = getVariableValue('CONTAINER_WORK_DIR')
+        self.__basedir = getVariableValue('ES_BASE_DIR')
+        self.__eshome = runtimeContext.addVariable(RuntimeContextVariable("ES_HOME", self.__basedir, RuntimeContextVariable.ENVIRONMENT_TYPE, "ElasticSearch Home", False, RuntimeContextVariable.NO_INCREMENT))
+        self.__master = runtimeContext.addVariable(RuntimeContextVariable("FIRST_DEPLOYED_MASTER_ADDR", "", RuntimeContextVariable.STRING_TYPE, "Detected Master hostname", False, RuntimeContextVariable.NO_INCREMENT))
+        self.__bindir = os.path.join(self.__basedir , "bin")
+        self.__enginedir = getVariableValue('ENGINE_WORK_DIR')
+        self.__javahome = getVariableValue('GRIDLIB_JAVA_HOME')
         
-            self.__UnixPreLoad = os.path.join(self.__javahome, "jre/lib/amd64/libzip.so")
-            os.putenv("LD_PRELOAD", self.__UnixPreLoad )
-            runtimeContext.addVariable(RuntimeContextVariable("LD_LIBRARY_PATH", self.__UnixLibPath, RuntimeContextVariable.ENVIRONMENT_TYPE, "LD_LIBRARY_PATH", False, RuntimeContextVariable.NO_INCREMENT))
-            runtimeContext.addVariable(RuntimeContextVariable("LD_PRELOAD", ldpld, RuntimeContextVariable.ENVIRONMENT_TYPE, "LD_PRELOAD", False, RuntimeContextVariable.NO_INCREMENT))
-            runtimeContext.addVariable(RuntimeContextVariable("JAVA_HOME", self.__javahome, RuntimeContextVariable.ENVIRONMENT_TYPE, "JAVA_HOME", False, RuntimeContextVariable.NO_INCREMENT))
-            
-            os.putenv("ES_HOME",self.__basedir)
-            
-            self.__logdir = getVariableValue('ES_LOG_DIR')
-            self.__datadir = getVariableValue('ES_DATA_DIR')
-            self.__tempdir = getVariableValue('ES_TMP_DIR')
-            self.__confdir = getVariableValue('ES_CONF_DIR')
-            self.__plugdir = getVariableValue('ES_PLUGINS_DIR')
-            
-            self.__hostIp = getVariableValue('ES_HOST_IP')
-            self.__httpPort = getVariableValue('HTTP_PORT')
-         
-            self.__pidfile = os.path.join(self.__workdir, "elasticsearch.pid")
-            
-            call(["touch", self.__pidfile])
-            call(["chmod", "777", self.__pidfile])
-            defaultfolders = [self.__logdir, self.__datadir, self.__tempdir , self.__confdir , self.__plugdir, self.__bindir]
-            logInfo("Creating the necessaries folders")
-            for dir in defaultfolders:
-                createDir(dir)
-                call(["chmod", "-fR", "+x", dir])
-        except:
-            type, value, traceback = sys.exc_info()
-            logSevere("ElasticSearch:doInit:__init__:" + `value`)
+        os.putenv("JAVA_HOME", self.__javahome)
+        
+        self.__path = os.getenv("PATH")
+        self.__UnixPath = self.__bindir + ":" + os.path.join(self.__javahome, "bin") + ":" + self.__path
+        os.putenv("PATH", self.__UnixPath)
+        
+        self.__ldd = os.getenv("LD_LIBRARY_PATH")
+        self.__UnixLibPath = self.__ldd +":"+ os.path.join(self.__javahome, "jre/lib/amd64/server")+":"+os.path.join(self.__javahome, "jre/lib/amd64/")+":"+os.path.join(self.__javahome, "jre/lib/ext")+":"+os.path.join(self.__javahome,"lib/")
+        os.putenv("LD_LIBRARY_PATH", self.__UnixLibPath)
+    
+        self.__UnixPreLoad = os.path.join(self.__javahome, "jre/lib/amd64/libzip.so")
+        os.putenv("LD_PRELOAD", self.__UnixPreLoad )
+        runtimeContext.addVariable(RuntimeContextVariable("LD_LIBRARY_PATH", self.__UnixLibPath, RuntimeContextVariable.ENVIRONMENT_TYPE, "LD_LIBRARY_PATH", False, RuntimeContextVariable.NO_INCREMENT))
+        runtimeContext.addVariable(RuntimeContextVariable("LD_PRELOAD", ldpld, RuntimeContextVariable.ENVIRONMENT_TYPE, "LD_PRELOAD", False, RuntimeContextVariable.NO_INCREMENT))
+        runtimeContext.addVariable(RuntimeContextVariable("JAVA_HOME", self.__javahome, RuntimeContextVariable.ENVIRONMENT_TYPE, "JAVA_HOME", False, RuntimeContextVariable.NO_INCREMENT))
+        
+        os.putenv("ES_HOME",self.__basedir)
+        
+        self.__logdir = getVariableValue('ES_LOG_DIR')
+        self.__datadir = getVariableValue('ES_DATA_DIR')
+        self.__tempdir = getVariableValue('ES_TMP_DIR')
+        self.__confdir = getVariableValue('ES_CONF_DIR')
+        self.__plugdir = getVariableValue('ES_PLUGINS_DIR')
+        
+        self.__hostIp = getVariableValue('ES_HOST_IP')
+        self.__httpPort = getVariableValue('HTTP_PORT')
+     
+        self.__pidfile = os.path.join(self.__workdir, "elasticsearch.pid")
+        
+        call(["touch", self.__pidfile])
+        call(["chmod", "777", self.__pidfile])
+        defaultfolders = [self.__logdir, self.__datadir, self.__tempdir , self.__confdir , self.__plugdir, self.__bindir]
+        logInfo("Creating the necessaries folders")
+        for dir in defaultfolders:
+            createDir(dir)
+            call(["chmod", "-fR", "+x", dir])
             
             
     def startNode(self):
-        
+        logInfo("startNode:Enter")
         self.__environ = os.environ.copy()
-        
         ### Starting Node
         self.__ELASTIC_ARGS = "-p " + self.__pidfile
         if ContainerUtils.isWindows():
-            self.__ELASTIC_CMD = os.path.join(self.__bindir,"elasticsearch.bat ")
-            self.__CMD = self.__ELASTIC_CMD + self.__ELASTIC_ARGS
+            self.__ELASTIC_CMD = os.path.join(self.__bindir, "elasticsearch.bat ")
         else:
-            self.__ELASTIC_CMD = os.path.join(self.__bindir,"elasticsearch ")
-            self.__CMD = self.__ELASTIC_CMD + self.__ELASTIC_ARGS
+            self.__ELASTIC_CMD = os.path.join(self.__bindir, "elasticsearch ")
+        self.__CMD = self.__ELASTIC_CMD + self.__ELASTIC_ARGS
         logInfo("StartUp Command to be used : " + self.__CMD)
         args = shlex.split(self.__CMD)
         process = Popen(args,stdout=None,stderr=None,env=self.__environ,shell=True)
         process.wait()
         time.sleep(5)
         logInfo("Start return Code : " + str(process.returncode))
+        logInfo("startNode:Exit")
         
     def stopNode(self):
         self.__endpoint = "/_cluster/nodes/_local/_shutdown"
@@ -325,8 +308,9 @@ class ElasticSearch:
         return self.__code
      
     def getNodeStatus(self):
+        logInfo("getNodeStatus:Enter")
         self.__returnStatus = 0
-        self.__url = "http://"+self.__hostIp+":"+self.__httpPort+"/_nodes/_local"
+        self.__url = "http://"+self.__hostIp+":"+self.__httpPortt+"/_nodes/_local"
         self.__req = urllib2.Request(self.__url, None, {'Content-Type': 'application/json'})
         logFiner("Retrieving Status from : "+ self.__url)
         try:
@@ -350,6 +334,7 @@ class ElasticSearch:
                 logFiner("Node status is KO")
                 self.__returnStatus = 1
         
+        logInfo("getNodeStatus:Enter")
         return self.__returnStatus
     
     def installActivationInfo(self, info):
@@ -357,12 +342,10 @@ class ElasticSearch:
         self.__httpRoutePrefix = getVariableValue("CLUSTER_NAME")
         self.__httpinfo = features.get('HTTP Support')
         self.__httpinfo.setRouteDirectlyToEndpoints(True)
-        propertyName = "HTTP_STATIC_ROUTE_ElasticSearch_" + self.__httpRoutePrefix
         self.__prefix = "/elasticsearch/" + self.__httpRoutePrefix 
         self.__httpinfo.setRoutingPrefix(self.__prefix)
         self.__httpinfo.addRelativeUrl("/")
-        propertyValue = self.__prefix +";"+ "http://" + self.__hostIp +":" + self.__httpPort
-        info.setProperty(propertyName, propertyValue)
+        
 
 
             
