@@ -42,7 +42,7 @@
     <property name="supportedDomainType" value="J2EE"/>
     
     <script class="com.datasynapse.fabric.common.script.Script">
-        <property name="name" value="elasticsearch-enabler.py"/>
+        <property name="name" value="elasticsearch_enabler.py"/>
         <property name="language" value="jython"/>
         <property name="languageVersion" value="2.5"/>
     </script>
@@ -72,6 +72,18 @@
             <property name="value" value="1.7"/>
             <property name="type" value="String"/>
             <property name="description" value="The version of the required JDK"/>
+        </variable>
+        <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
+            <property name="name" value="ARCHIVE_DETECTION_ENABLED"/>
+            <property name="value" value="True"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Archive detection will be enabled if this variable is set to true."/>
+        </variable>
+        <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
+            <property name="name" value="ARCHIVE_DETECTION_FREQUENCY"/>
+            <property name="value" value="30"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Archive detection frequency in seconds. Default frequency of 30 seconds will be used if a value less than 30 is specified."/>
         </variable>
     
         <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
