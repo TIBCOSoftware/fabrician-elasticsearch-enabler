@@ -146,8 +146,13 @@ def doUninstall():
 
 def doShutdown():
     logInfo("doShutdown:Enter")
-    elastic = getVariableValue("ELASTICSEARCH_NODE_OBJECT")
-    elastic.stopNode()
+    try:
+        elastic = getVariableValue("ELASTICSEARCH_NODE_OBJECT")
+        if elastic:
+            elastic.stopNode()
+    except:
+        type, value, traceback = sys.exc_info()
+        logSevere("Unexpected error in ELASTICSEARCH:doInstall:" + `value`)
     logInfo("doShutdown:Enter")
     
 def getContainerRunningConditionPollPeriod():
@@ -207,7 +212,7 @@ class ElasticSearch:
         self.__UnixPreLoad = os.path.join(self.__javahome, "jre/lib/amd64/libzip.so")
         os.putenv("LD_PRELOAD", self.__UnixPreLoad )
         runtimeContext.addVariable(RuntimeContextVariable("LD_LIBRARY_PATH", self.__UnixLibPath, RuntimeContextVariable.ENVIRONMENT_TYPE, "LD_LIBRARY_PATH", False, RuntimeContextVariable.NO_INCREMENT))
-        runtimeContext.addVariable(RuntimeContextVariable("LD_PRELOAD", ldpld, RuntimeContextVariable.ENVIRONMENT_TYPE, "LD_PRELOAD", False, RuntimeContextVariable.NO_INCREMENT))
+        runtimeContext.addVariable(RuntimeContextVariable("LD_PRELOAD", self.__UnixPreLoad, RuntimeContextVariable.ENVIRONMENT_TYPE, "LD_PRELOAD", False, RuntimeContextVariable.NO_INCREMENT))
         runtimeContext.addVariable(RuntimeContextVariable("JAVA_HOME", self.__javahome, RuntimeContextVariable.ENVIRONMENT_TYPE, "JAVA_HOME", False, RuntimeContextVariable.NO_INCREMENT))
         
         os.putenv("ES_HOME",self.__basedir)
@@ -217,7 +222,7 @@ class ElasticSearch:
         self.__tempdir = getVariableValue('ES_TMP_DIR')
         self.__confdir = getVariableValue('ES_CONF_DIR')
         self.__plugdir = getVariableValue('ES_PLUGINS_DIR')
-        
+
         self.__hostIp = getVariableValue('ES_HOST_IP')
         self.__httpPort = getVariableValue('HTTP_PORT')
      
@@ -310,7 +315,7 @@ class ElasticSearch:
     def getNodeStatus(self):
         logInfo("getNodeStatus:Enter")
         self.__returnStatus = 0
-        self.__url = "http://"+self.__hostIp+":"+self.__httpPortt+"/_nodes/_local"
+        self.__url = "http://"+self.__hostIp+":"+self.__httpPort+"/_nodes/_local"
         self.__req = urllib2.Request(self.__url, None, {'Content-Type': 'application/json'})
         logFiner("Retrieving Status from : "+ self.__url)
         try:
