@@ -229,7 +229,7 @@ def urlDetect():
         for endpoint in url:
             logInfo("Adding context : " + str(endpoint))    
             urls.append(str(endpoint))
-        urls.append(getVariableValue('HTTP_PREFIX'))
+        urls.append('/')
     
     return array(urls, String)
     
@@ -306,7 +306,7 @@ class ElasticSearch:
         self.__httpPort = getVariableValue('HTTP_PORT')
         self.__httpRoutePrefix = getVariableValue("CLUSTER_NAME")
         self.__prefix = "/elasticsearch/" + self.__httpRoutePrefix 
-        runtimeContext.addVariable(RuntimeContextVariable("HTTP_PREFIX", self.__prefix, RuntimeContextVariable.STRING, "PREFIX", False, RuntimeContextVariable.NO_INCREMENT))
+        runtimeContext.addVariable(RuntimeContextVariable("HTTP_PREFIX", self.__prefix, RuntimeContextVariable.STRING_TYPE, "PREFIX", False, RuntimeContextVariable.NO_INCREMENT))
         self.__pidfile = os.path.join(self.__workdir, "elasticsearch.pid")
         
         call(["touch", self.__pidfile])
