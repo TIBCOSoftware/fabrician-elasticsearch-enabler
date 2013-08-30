@@ -273,7 +273,10 @@ class ElasticSearch:
         self.__basedir = getVariableValue('ES_BASE_DIR')
         self.__eshome = self.__basedir
         runtimeContext.addVariable(RuntimeContextVariable("ES_HOME", self.__basedir, RuntimeContextVariable.ENVIRONMENT_TYPE, "ElasticSearch Home", False, RuntimeContextVariable.NO_INCREMENT))
-        self.__master = runtimeContext.addVariable(RuntimeContextVariable("FIRST_DEPLOYED_MASTER_ADDR", "", RuntimeContextVariable.STRING_TYPE, "Detected Master hostname", False, RuntimeContextVariable.NO_INCREMENT))
+        
+        self.__master = getVariableValue('MASTER_ENDPOINT')
+        if self.__master:
+            runtimeContext.addVariable(RuntimeContextVariable("FIRST_DEPLOYED_MASTER_ADDR", self.__master, RuntimeContextVariable.STRING_TYPE, "Detected Master hostname", False, RuntimeContextVariable.NO_INCREMENT))
         self.__bindir = os.path.join(self.__basedir , "bin")
         self.__enginedir = getVariableValue('ENGINE_WORK_DIR')
         self.__javahome = getVariableValue('GRIDLIB_JAVA_HOME')
