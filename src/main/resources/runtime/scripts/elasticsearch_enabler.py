@@ -214,6 +214,7 @@ def urlDetect():
     logInfo("Retrieving plugins URL from : "+ SrvUrl)
     try:
         f = urllib2.urlopen(req)
+        elastic = getVariableValue("ELASTICSEARCH_NODE_OBJECT")
     except IOError, e:
         if hasattr(e, 'reason'):
             logInfo("Failed to reach the server")
@@ -228,7 +229,7 @@ def urlDetect():
         for endpoint in url:
             logInfo("Adding context : " + str(endpoint))    
             urls.append(str(endpoint))
-        
+        urls.append(getVariableValue('HTTP_PREFIX'))
     
     return array(urls, String)
     
@@ -270,7 +271,8 @@ class ElasticSearch:
         logInfo("__init__:Enter")
         self.__workdir = getVariableValue('CONTAINER_WORK_DIR')
         self.__basedir = getVariableValue('ES_BASE_DIR')
-        self.__eshome = runtimeContext.addVariable(RuntimeContextVariable("ES_HOME", self.__basedir, RuntimeContextVariable.ENVIRONMENT_TYPE, "ElasticSearch Home", False, RuntimeContextVariable.NO_INCREMENT))
+        self.__eshome = self.__basedir
+        runtimeContext.addVariable(RuntimeContextVariable("ES_HOME", self.__basedir, RuntimeContextVariable.ENVIRONMENT_TYPE, "ElasticSearch Home", False, RuntimeContextVariable.NO_INCREMENT))
         self.__master = runtimeContext.addVariable(RuntimeContextVariable("FIRST_DEPLOYED_MASTER_ADDR", "", RuntimeContextVariable.STRING_TYPE, "Detected Master hostname", False, RuntimeContextVariable.NO_INCREMENT))
         self.__bindir = os.path.join(self.__basedir , "bin")
         self.__enginedir = getVariableValue('ENGINE_WORK_DIR')
@@ -302,7 +304,9 @@ class ElasticSearch:
 
         self.__hostIp = getVariableValue('ES_HOST_IP')
         self.__httpPort = getVariableValue('HTTP_PORT')
-     
+        self.__httpRoutePrefix = getVariableValue("CLUSTER_NAME")
+        self.__prefix = "/elasticsearch/" + self.__httpRoutePrefix 
+        runtimeContext.addVariable(RuntimeContextVariable("HTTP_PREFIX", self.__prefix, RuntimeContextVariable.STRING, "PREFIX", False, RuntimeContextVariable.NO_INCREMENT))
         self.__pidfile = os.path.join(self.__workdir, "elasticsearch.pid")
         
         call(["touch", self.__pidfile])
@@ -447,10 +451,8 @@ class ElasticSearch:
     
     def installActivationInfo(self, info):
         #logInfo("install activation info")
-        self.__httpRoutePrefix = getVariableValue("CLUSTER_NAME")
         self.__httpinfo = features.get('HTTP Support')
         self.__httpinfo.setRouteDirectlyToEndpoints(True)
-        self.__prefix = "/elasticsearch/" + self.__httpRoutePrefix 
         self.__httpinfo.setRoutingPrefix(self.__prefix)
         self.__httpinfo.addRelativeUrl("/")
         
