@@ -12,6 +12,7 @@ from com.datasynapse.fabric.engine.managedprocess import ManagedProcess
 from com.datasynapse.fabric.container import Feature, Container
 from com.datasynapse.gridserver.admin import Property
 from com.datasynapse.fabric.common import ArchiveActivationInfo
+from com.datasynapse.fabric.container import ArchiveDetail
 
 from com.datasynapse.fabric.admin import AdminManager, ComponentAdmin
 from com.datasynapse.fabric.admin.info import GridlibInfo
@@ -20,6 +21,7 @@ from jarray import array
 from java.lang import StringBuilder
 import java.lang.System
 from subprocess import Popen, PIPE, STDOUT, call
+from java.lang import String
 
 import os
 import sys, java, types
@@ -42,7 +44,7 @@ from com.jayway.jsonpath import JsonPath as jpath
 
 
 sys.setrecursionlimit(1500)
-
+archivesDir = None
 
 #######
 # Add Enabler Dependancies
@@ -81,19 +83,6 @@ def createDir(directory):
             pass
         else:
             raise
-
-def doPlugInsInstall(plugins_distro_zip_path, bindir, plugdir ):
-    plugins_name = os.path.splitext(plugins_distro_zip_path)[0]
-    PLUGINS_ARGS = " -url file://"+ plugins_distro_zip_path + " -install " + plugdir
-    
-    if ContainerUtils.isWindows():
-        PLUGINS_CMD = os.path.join(bindir,"plugin.bat")
-    else:
-        PLUGINS_CMD = os.path.join(bindir,"plugin")
-
-    CMD = PLUGINS_CMD + PLUGINS_ARGS
-    logInfo("Command to be used : " + CMD)
-    return CMD
             
 def logInfo(msg):
     logger.info("[ElasticSearch_Enabler] " + msg)
@@ -187,6 +176,86 @@ def getStatistic(statName):
         logSevere("Unexpected error in ElasticSearch:getStatistic:" + `value`)
     return stat
 
+
+def createArchiveDetails(archivePaths, running):
+    archives = []
+    for archivePath in archivePaths:
+        archives.append(ArchiveDetail(os.path.basename(archivePath), running, False, ""))
+    return archives
+        
+def containsArchiveDetail(details, archiveName):
+    for detail in details:
+        if detail.archiveName == archiveName:
+            return True
+    return False
+    
+def archiveDetect():
+    logInfo("detecting archives")
+    archives = []
+    if os.path.exists(archivesDir):
+        for f in os.listdir(archivesDir):
+            name = os.path.basename(f)
+            if not containsArchiveDetail(archives, name):
+                archives.append(ArchiveDetail(name, False, False, ""))
+    return array(archives, ArchiveDetail)
+
+def urlDetect():
+    logInfo("detecting urls")
+    urls = []
+    SrvUrl = "http://"+getVariableValue('ES_HOST_IP')+":"+getVariableValue('HTTP_PORT')+"/_nodes/_local/plugin"
+    req = urllib2.Request(SrvUrl, None, {'Content-Type': 'application/json'})
+    logInfo("Retrieving plugins URL from : "+ SrvUrl)
+    try:
+        f = urllib2.urlopen(req)
+    except IOError, e:
+        if hasattr(e, 'reason'):
+            logInfo("Failed to reach the server")
+            logInfo("Reason :" + str(e.reason))
+        elif hasattr(e, 'code'):
+            logInfo("The server couldn\'t fullfill the request.")
+            logInfo("Error code :" + str(e.code))
+    else:
+        dataRaw = f.read()
+        url = str(jpath.read(dataRaw, "$.nodes.*.plugins.url"))
+        for plugurl in url:
+            logInfo("Adding context : " + str(plugurl[0]))
+            urls.append(str(plugurl[0]))
+        f.close()
+    
+    return array(urls, String)
+    
+def archiveDeploy(archiveName, archiveLocators):
+    logInfo("deploying archive " + archiveName)
+    try:
+        elastic = getVariableValue("ELASTICSEARCH_NODE_OBJECT")
+        elastic.stopNode()
+        elastic.installPlugins(archiveName, archivesDir)
+        elastic.startNode()
+    except:
+        type, value, traceback = sys.exc_info()
+        logSevere("Unexpected error in ElasticSearch:archiveDeploy:" + `value`)
+    ContainerUtils.retrieveAndConfigureArchiveFile(proxy.container, archiveName, archiveLocators, None)
+        
+
+def archiveStart(archiveName):
+    logInfo("starting archive " + archiveName)
+    archiveFile = os.path.join(archivesDir, archiveName)
+    archiveFiles = [ archiveFile ]
+    signatures = [ "java.lang.String" ]
+    return ArchiveActivationInfo(archiveName, "")
+    
+def archiveStop(archiveName, archiveId, properties):
+    logInfo("stopping archive " + archiveName)
+    archiveFile = os.path.join(archivesDir, archiveName)
+    archiveFiles = [ archiveFile ]
+    signatures = [ "java.lang.String" ]   
+        
+def archiveUndeploy(archiveName, properties):
+    logInfo("undeploying archive " + archiveName)
+    archiveFile = os.path.join(archivesDir, archiveName)
+    logInfo("Deleting " + archiveFile)
+    os.remove(archiveFile) 
+
 class ElasticSearch:
     
     def __init__(self, additionalVariables):
@@ -253,6 +322,11 @@ class ElasticSearch:
         process.wait()
         time.sleep(5)
         logInfo("Start return Code : " + str(process.returncode))
+        logInfo("finding the archivesDir")
+        global archivesDir
+        archiveMgmtFeature = ContainerUtils.getFeatureInfo("Archive Management Support", proxy.container, proxy.container.currentDomain)
+        archivesDir = os.path.join(self.__enginedir, archiveMgmtFeature.archiveDirectory)
+        logInfo("Found archives dir " + archivesDir)
         logInfo("startNode:Exit")
         
     def stopNode(self):
@@ -311,7 +385,25 @@ class ElasticSearch:
         self.__code = self.__response.code
         self.__response.close()
         return self.__code
-     
+    
+    def installPlugins(self, archivename, archivepath):
+        logInfo("Installing Plugin : " + archivename)
+#        self.__PLUGINS_ARGS = " --url file://"+ os.path.join(archivepath , archivename) + " --install " + archivename
+#        if ContainerUtils.isWindows():
+#            self.__PLUGINS_CMD = os.path.join(self.__bindir,"plugin.bat")
+#        else:
+#            self.__PLUGINS_CMD = os.path.join(self.__bindir,"plugin")
+#            
+#        self.__CMD = self.__PLUGINS_CMD + self.__PLUGINS_ARGS
+        self.__CMD = "unzip " + os.path.join(archivepath , archivename) + " -d " + self.__plugdir
+        logInfo("Command to be used : " + self.__CMD)
+        args = shlex.split(self.__CMD)
+        process = Popen(args,stdout=None,stderr=None,env=self.__environ,shell=True)
+        process.wait()
+        time.sleep(5)
+        
+   
+         
     def getNodeStatus(self):
         logInfo("getNodeStatus:Enter")
         self.__returnStatus = 0
