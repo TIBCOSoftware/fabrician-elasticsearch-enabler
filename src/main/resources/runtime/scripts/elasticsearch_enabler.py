@@ -23,6 +23,12 @@ import java.lang.System
 from subprocess import Popen, PIPE, STDOUT, call
 from java.lang import String
 
+
+import sys
+import zipfile
+import os
+import os.path
+import getopt
 import os
 import sys, java, types
 import platform
@@ -34,6 +40,7 @@ import urllib2, httplib
 import shutil
 import errno
 import shlex
+import zipfile
 from java.util import Properties
 
 jarpath = runtimeContext.getVariable('CONTAINER_GRIDLIB_DIR').getValue()
@@ -216,11 +223,12 @@ def urlDetect():
             logInfo("Error code :" + str(e.code))
     else:
         dataRaw = f.read()
-        url = str(jpath.read(dataRaw, "$.nodes.*.plugins.url"))
-        for plugurl in url:
-            logInfo("Adding context : " + str(plugurl[0]))
-            urls.append(str(plugurl[0]))
         f.close()
+        url = jpath.read(dataRaw, "$.nodes.*.plugins.url")
+        for endpoint in url:
+            logInfo("Adding context : " + str(endpoint))    
+            urls.append(str(endpoint))
+        
     
     return array(urls, String)
     
@@ -304,8 +312,10 @@ class ElasticSearch:
         for dir in defaultfolders:
             createDir(dir)
             call(["chmod", "-fR", "+x", dir])
-            
-            
+    
+    def extract(self, zipfilepath, extractiondir):
+        UnZipFile().extract(zipfilepath, extractiondir)
+    
     def startNode(self):
         logInfo("startNode:Enter")
         self.__environ = os.environ.copy()
@@ -346,6 +356,7 @@ class ElasticSearch:
         else:
             dataRaw = self.__f.read()
             self.__f.close()
+        time.sleep(5)
 
     def getStatistic(self, __statname):
         #split stats path
@@ -370,12 +381,13 @@ class ElasticSearch:
                 logInfo("Supported values for statistic index: indices,os,fs,http,jvm,process,thread_pool,transport,network")
         else:
             self.__dataRaw = f.read()
+            f.close()
             if len(self.__stat) > 2:
                 self.__subkeyname = self.__stat[2]
                 self.__statvalue = jpath.read(self.__dataRaw, "$.nodes.*."+self.__indexname+"."+self.__keyname+"."+self.__subkeyname)
             else:
                 self.__statvalue = jpath.read(self.__dataRaw, "$.nodes.*."+self.__indexname+"."+self.__keyname)
-            f.close()
+            
                      
         return str(self.__statvalue[0])
          
@@ -395,12 +407,11 @@ class ElasticSearch:
 #            self.__PLUGINS_CMD = os.path.join(self.__bindir,"plugin")
 #            
 #        self.__CMD = self.__PLUGINS_CMD + self.__PLUGINS_ARGS
-        self.__CMD = "unzip " + os.path.join(archivepath , archivename) + " -d " + self.__plugdir
-        logInfo("Command to be used : " + self.__CMD)
-        args = shlex.split(self.__CMD)
-        process = Popen(args,stdout=None,stderr=None,env=self.__environ,shell=True)
-        process.wait()
-        time.sleep(5)
+        self.__archiveFile = os.path.join(archivepath , archivename)
+        if os.path.exists(self.__archiveFile):
+            self.extract(self.__archiveFile, self.__plugdir)
+        else:
+            logInfo("Archive not Found ! at : " + self.__archiveFile)
         
    
          
@@ -444,6 +455,89 @@ class ElasticSearch:
         self.__httpinfo.addRelativeUrl("/")
         
 
+class UnZipFile:
+    def __init__(self, verbose = False, percent = 10):
+        self.verbose = verbose
+        self.percent = percent
+        
+    def extract(self, file, dir):
+        if not dir.endswith(':') and not os.path.exists(dir):
+            os.mkdir(dir)
+
+        zf = zipfile.ZipFile(file)
+
+        # create directory structure to house files
+        self._createstructure(file, dir)
+
+        num_files = len(zf.namelist())
+        percent = self.percent
+        divisions = 100 / percent
+        perc = int(num_files / divisions)
+
+        # extract files to directory structure
+        for i, name in enumerate(zf.namelist()):
+
+            if self.verbose == True:
+                print "Extracting %s" % name
+            elif perc > 0 and (i % perc) == 0 and i > 0:
+                complete = int (i / perc) * percent
+                print "%s%% complete" % complete
+
+            if not name.endswith('/'):
+                outfile = open(os.path.join(dir, name), 'wb')
+                outfile.write(zf.read(name))
+                outfile.flush()
+                outfile.close()
+
+
+    def _createstructure(self, file, dir):
+        self._makedirs(self._listdirs(file), dir)
+
+
+    def _createdir(self, basedir, dir):
+        """ Create any parent directories that don't currently exist """
+        index = dir.rfind('/')
+        if index > 0:
+            dir = dir[0:index]
+            curdir = os.path.join(basedir, dir)
+            if not os.path.exists(curdir):
+                self._createdir(basedir, curdir)
+                os.mkdir(dir)
+            else:
+                return 
+        else:
+            curdir = os.path.join(basedir, dir)
+            if not os.path.exists(curdir):
+                os.mkdir(curdir)
+            
+            
+    def _makedirs(self, directories, basedir):
+        """ Create any directories that don't currently exist """
+        for dir in directories:
+            curdir = os.path.join(basedir, dir)
+            if not os.path.exists(curdir):
+                self._createdir(basedir, curdir)
+
+    def _listdirs(self, file):
+        """ Grabs all the directories in the zip structure
+        This is necessary to create the structure before trying
+        to extract the file to it. """
+        zf = zipfile.ZipFile(file)
+
+        dirs = []
+
+        for name in zf.namelist():
+            if name.endswith('/'):
+                dirs.append(name)
+            else:
+                index = name.rfind('/')
+                if index > 0:
+                    index = index + 1
+                    name = name[0:index]
+                    dirs.append(name)
+
+        dirs.sort()
+        return dirs
 
             
             
