@@ -41,6 +41,8 @@ import shutil
 import errno
 import shlex
 import zipfile
+import random
+import signal
 from java.util import Properties
 
 jarpath = runtimeContext.getVariable('CONTAINER_GRIDLIB_DIR').getValue()
@@ -145,7 +147,7 @@ def doShutdown():
     try:
         elastic = getVariableValue("ELASTICSEARCH_NODE_OBJECT")
         if elastic:
-            elastic.stopNode()
+            elastic.killNode()
     except:
         type, value, traceback = sys.exc_info()
         logSevere("Unexpected error in ELASTICSEARCH:doInstall:" + `value`)
@@ -237,7 +239,7 @@ def archiveDeploy(archiveName, archiveLocators):
     logInfo("deploying archive " + archiveName)
     try:
         elastic = getVariableValue("ELASTICSEARCH_NODE_OBJECT")
-        elastic.stopNode()
+        elastic.killNode()
         elastic.installPlugins(archiveName, archivesDir)
         elastic.startNode()
     except:
@@ -307,6 +309,12 @@ class ElasticSearch:
 
         self.__hostIp = getVariableValue('ES_HOST_IP')
         self.__httpPort = getVariableValue('HTTP_PORT')
+        self.__httpPortInt = int(self.__httpPort)
+        self.__randomnum = int(random.randint(1,100))
+        #generate unique Http Port :
+        self.__httpPort = str(self.__httpPortInt + self.__randomnum)
+        runtimeContext.addVariable(RuntimeContextVariable("HTTP_PORT", self.__httpPort, RuntimeContextVariable.STRING_TYPE, "HTTP PORT Random Number", False, RuntimeContextVariable.NO_INCREMENT))
+        
         self.__httpRoutePrefix = getVariableValue("CLUSTER_NAME")
         self.__prefix = "/elasticsearch/" + self.__httpRoutePrefix 
         runtimeContext.addVariable(RuntimeContextVariable("HTTP_PREFIX", self.__prefix, RuntimeContextVariable.STRING_TYPE, "PREFIX", False, RuntimeContextVariable.NO_INCREMENT))
@@ -327,7 +335,7 @@ class ElasticSearch:
         logInfo("startNode:Enter")
         self.__environ = os.environ.copy()
         ### Starting Node
-        self.__ELASTIC_ARGS = "-p " + self.__pidfile
+        self.__ELASTIC_ARGS = "-f -Des.pidfile=" + self.__pidfile
         if ContainerUtils.isWindows():
             self.__ELASTIC_CMD = os.path.join(self.__bindir, "elasticsearch.bat ")
         else:
@@ -335,8 +343,7 @@ class ElasticSearch:
         self.__CMD = self.__ELASTIC_CMD + self.__ELASTIC_ARGS
         logInfo("StartUp Command to be used : " + self.__CMD)
         args = shlex.split(self.__CMD)
-        process = Popen(args,stdout=None,stderr=None,env=self.__environ,shell=True)
-        process.wait()
+        process = Popen(args,stdout=None,stderr=None,env=self.__environ,shell=False)
         time.sleep(5)
         logInfo("Start return Code : " + str(process.returncode))
         logInfo("finding the archivesDir")
@@ -363,7 +370,18 @@ class ElasticSearch:
         else:
             dataRaw = self.__f.read()
             self.__f.close()
-        time.sleep(5)
+        time.sleep(1)
+    
+    
+    def killNode(self):
+        logInfo("Node will be killed...")
+        self.__pidf = open(self.__pidfile, "r")
+        self.__pids = self.__pidf.readlines()
+        self.__pidf.close()
+        self.__pid = int(self.__pids[0])
+        
+        os.kill(self.__pid, signal.SIGKILL)
+        logInfo("kill pid : " + str(self.__pid))
 
     def getStatistic(self, __statname):
         #split stats path

@@ -130,6 +130,7 @@
         <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
             <property name="name" value="ES_CONF_DIR"/>
             <property name="value" value="${ES_BASE_DIR}/config"/>
+            <property name="type" value="Environment"/>
             <property name="description" value="Path where configurations files are located"/>
         </variable>
         <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
@@ -155,33 +156,28 @@
         <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
             <property name="name" value="ES_HOST_IP"/>
             <property name="value" value="${LISTEN_ADDRESS}"/>
-            <property name="export" value="true"/>
             <property name="description" value="Set binding addr for this instance"/>
         </variable>
         <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
             <property name="name" value="HTTP_PORT"/>
-            <property name="value" value="18200"/>
-            <property name="export" value="true"/>
-            <property name="autoIncrementType" value="Numeric"/>
+            <property name="value" value="18000"/>
+            <property name="type" value="String"/>
             <property name="description" value="HTTP port for this instance"/>
         </variable>
         <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
             <property name="name" value="ES_TCP_PORT"/>
-            <property name="value" value="17200"/>
-            <property name="export" value="true"/>
-            <property name="autoIncrementType" value="Numeric"/>
+            <property name="value" value="[17000-18000]"/>
+            <property name="type" value="String"/>
         </variable>
         <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
             <property name="name" value="ES_MIN_MEM"/>
             <property name="value" value="2048m"/>
-            <property name="export" value="true"/>
             <property name="type" value="Environment"/>
             <property name="description" value="MIN memory to be used by this instance"/>
         </variable>
         <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
             <property name="name" value="ES_MAX_MEM"/>
             <property name="value" value="2048m"/>
-            <property name="export" value="true"/>
             <property name="type" value="Environment"/>
             <property name="description" value="MAX memory to be used by this instance"/>
         </variable>
