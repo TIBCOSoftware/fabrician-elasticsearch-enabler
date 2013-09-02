@@ -37,7 +37,7 @@
 # Node names are generated dynamically on startup, so you're relieved
 # from configuring them manually. You can tie this node to a specific name:
 #
- node.name: "ElasticSearch-${ES_HOST_IP}-Node"
+ node.name: "ElasticSearch-${ENGINE_USERNAME}-Node"
 
 # Every node can be configured to allow or deny being eligible as the master,
 # and to allow or deny to store the data.
@@ -215,7 +215,7 @@
 
 # Enable compression for all communication between nodes (disabled by default):
 #
-# transport.tcp.compress: true
+ transport.tcp.compress: true
 
 # Set a custom port to listen for HTTP traffic:
 #
@@ -223,7 +223,7 @@
 
 # Set a custom allowed content length:
 #
-# http.max_content_length: 100mb
+ http.max_content_length: 256mb
 
 # Disable HTTP completely:
 #
@@ -299,7 +299,7 @@
 # operational within the cluster. Set this option to a higher value (2-4)
 # for large clusters (>3 nodes):
 #
- discovery.zen.minimum_master_nodes: 2
+ discovery.zen.minimum_master_nodes: 1
 
 # Set the time to wait for ping responses from other nodes when discovering.
 # Set this option to a higher value on a slow or congested network
@@ -324,7 +324,7 @@
 #
 # discovery.zen.ping.unicast.hosts: ["host1", "host2:port", "host3[portX-portY]"]
 
- discovery.zen.ping.unicast.hosts: ["${FIRST_DEPLOYED_MASTER_ADDR}"]
+ discovery.zen.ping.unicast.hosts: "${FIRST_DEPLOYED_MASTER_ADDR}"
 
 # EC2 discovery allows to use AWS EC2 API in order to perform discovery.
 #

@@ -166,7 +166,7 @@
         </variable>
         <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
             <property name="name" value="ES_TCP_PORT"/>
-            <property name="value" value="[17000-18000]"/>
+            <property name="value" value="17000"/>
             <property name="type" value="String"/>
         </variable>
         <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
@@ -184,10 +184,15 @@
         <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
             <property name="name" value="ES_JAVA_OPTS"/>
             <property name="value" value=""/>
-            <property name="export" value="true"/>
             <property name="type" value="Environment"/>
             <property name="description" value="Pass any specific Java Options"/>
-        </variable>                
+        </variable>
+        <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
+            <property name="name" value="isMaster"/>
+            <property name="value" value="True"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Set it for First Node only, Slaves will use this to form the cluster"/>
+        </variable>                 
         <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
             <property name="name" value="CAPTURE_INCLUDES"/>
             <property name="value" value="${ES_DATA_DIR}/*"/>

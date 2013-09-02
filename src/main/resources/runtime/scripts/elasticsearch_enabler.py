@@ -276,9 +276,7 @@ class ElasticSearch:
         self.__eshome = self.__basedir
         runtimeContext.addVariable(RuntimeContextVariable("ES_HOME", self.__basedir, RuntimeContextVariable.ENVIRONMENT_TYPE, "ElasticSearch Home", False, RuntimeContextVariable.NO_INCREMENT))
         
-        self.__master = getVariableValue('MASTER_ENDPOINT')
-        if self.__master:
-            runtimeContext.addVariable(RuntimeContextVariable("FIRST_DEPLOYED_MASTER_ADDR", self.__master, RuntimeContextVariable.STRING_TYPE, "Detected Master hostname", False, RuntimeContextVariable.NO_INCREMENT))
+        
         self.__bindir = os.path.join(self.__basedir , "bin")
         self.__enginedir = getVariableValue('ENGINE_WORK_DIR')
         self.__javahome = getVariableValue('GRIDLIB_JAVA_HOME')
@@ -311,10 +309,23 @@ class ElasticSearch:
         self.__httpPort = getVariableValue('HTTP_PORT')
         self.__httpPortInt = int(self.__httpPort)
         self.__randomnum = int(random.randint(1,100))
+        
+        self.__tcpPort = getVariableValue('ES_TCP_PORT')
+        self.__tcpPortInt = int(self.__tcpPort)
+        
+        #generate unique TCP port :
+        self.__tcpPort = str(self.__tcpPortInt + self.__randomnum)
+        runtimeContext.addVariable(RuntimeContextVariable("ES_TCP_PORT", self.__tcpPort, RuntimeContextVariable.STRING_TYPE, "TCP PORT Random Number", False, RuntimeContextVariable.NO_INCREMENT))
         #generate unique Http Port :
         self.__httpPort = str(self.__httpPortInt + self.__randomnum)
         runtimeContext.addVariable(RuntimeContextVariable("HTTP_PORT", self.__httpPort, RuntimeContextVariable.STRING_TYPE, "HTTP PORT Random Number", False, RuntimeContextVariable.NO_INCREMENT))
-        
+        self.__master = getVariableValue('isMaster')
+        if self.__master == "True":
+            runtimeContext.addVariable(RuntimeContextVariable("FIRST_DEPLOYED_MASTER_ADDR", "", RuntimeContextVariable.STRING_TYPE, "Master Endpoint for Clustering", False, RuntimeContextVariable.NO_INCREMENT))
+            runtimeContext.addVariable(RuntimeContextVariable("MASTER_ENDPOINT", self.__hostIp+":"+self.__httpPort, RuntimeContextVariable.STRING_TYPE, "Master Endpoint for Clustering", True, RuntimeContextVariable.NO_INCREMENT))
+        else:
+            self.__myMasterEndpoint = getVariableValue('MASTER_ENDPOINT')
+            runtimeContext.addVariable(RuntimeContextVariable("FIRST_DEPLOYED_MASTER_ADDR", self.__myMasterEndpoint, RuntimeContextVariable.STRING_TYPE, "Master Endpoint for Clustering", False, RuntimeContextVariable.NO_INCREMENT))
         self.__httpRoutePrefix = getVariableValue("CLUSTER_NAME")
         self.__prefix = "/elasticsearch/" + self.__httpRoutePrefix 
         runtimeContext.addVariable(RuntimeContextVariable("HTTP_PREFIX", self.__prefix, RuntimeContextVariable.STRING_TYPE, "PREFIX", False, RuntimeContextVariable.NO_INCREMENT))
