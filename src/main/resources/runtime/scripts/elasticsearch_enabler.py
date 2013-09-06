@@ -13,6 +13,7 @@ from com.datasynapse.fabric.container import Feature, Container
 from com.datasynapse.gridserver.admin import Property
 from com.datasynapse.fabric.common import ArchiveActivationInfo
 from com.datasynapse.fabric.container import ArchiveDetail
+from com.datasynapse.fabric.domain.featureinfo import ApplicationLoggingInfo
 
 from com.datasynapse.fabric.admin import AdminManager, ComponentAdmin
 from com.datasynapse.fabric.admin.info import GridlibInfo
@@ -36,13 +37,16 @@ import time
 import socket
 import fnmatch
 import urllib
-import urllib2, httplib
+import urllib2 as urllib2
 import shutil
+import httplib
 import errno
 import shlex
 import zipfile
 import random
 import signal
+from urlparse import urlparse
+
 from java.util import Properties
 
 jarpath = runtimeContext.getVariable('CONTAINER_GRIDLIB_DIR').getValue()
@@ -52,8 +56,11 @@ sys.path.append(os.path.join(jarpath,"ds_jars", "json-smart-1.1.1.jar"))
 from com.jayway.jsonpath import JsonPath as jpath
 
 
+
+
 sys.setrecursionlimit(1500)
 archivesDir = None
+
 
 #######
 # Add Enabler Dependancies
@@ -150,8 +157,8 @@ def doShutdown():
             elastic.killNode()
     except:
         type, value, traceback = sys.exc_info()
-        logSevere("Unexpected error in ELASTICSEARCH:doInstall:" + `value`)
-    logInfo("doShutdown:Enter")
+        logSevere("Unexpected error in ELASTICSEARCH:doShutdown:" + `value`)
+    logInfo("doShutdown:Exit")
     
 def getContainerRunningConditionPollPeriod():
     return 5000
@@ -159,12 +166,16 @@ def getContainerRunningConditionPollPeriod():
 def isContainerRunning():
     logInfo("isContainerRunning:Enter")
     status = False
-    elastic = getVariableValue("ELASTICSEARCH_NODE_OBJECT")
-    health = elastic.getNodeStatus()
-    if health == 0:
-        status = True
-    else:
-        status = False
+    try:
+        elastic = getVariableValue("ELASTICSEARCH_NODE_OBJECT")
+        health = elastic.getNodeStatus()
+        if health == 0:
+            status = True
+        else:
+            status = False
+    except:
+        type, value, traceback = sys.exc_info()
+        logSevere("Unexpected error in ElasticSearch:isContainerRunning:" + `value`)
     logInfo("isContainerRunning:Exit")             
     return status
 ####
@@ -210,28 +221,12 @@ def archiveDetect():
 
 def urlDetect():
     logInfo("detecting urls")
-    urls = []
-    SrvUrl = "http://"+getVariableValue('ES_HOST_IP')+":"+getVariableValue('HTTP_PORT')+"/_nodes/_local/plugin"
-    req = urllib2.Request(SrvUrl, None, {'Content-Type': 'application/json'})
-    logInfo("Retrieving plugins URL from : "+ SrvUrl)
     try:
-        f = urllib2.urlopen(req)
         elastic = getVariableValue("ELASTICSEARCH_NODE_OBJECT")
-    except IOError, e:
-        if hasattr(e, 'reason'):
-            logInfo("Failed to reach the server")
-            logInfo("Reason :" + str(e.reason))
-        elif hasattr(e, 'code'):
-            logInfo("The server couldn\'t fullfill the request.")
-            logInfo("Error code :" + str(e.code))
-    else:
-        dataRaw = f.read()
-        f.close()
-        url = jpath.read(dataRaw, "$.nodes.*.plugins.url")
-        for endpoint in url:
-            logInfo("Adding context : " + str(endpoint))    
-            urls.append(str(endpoint))
-        urls.append('/')
+        urls = elastic.getPublishedUrls()
+    except:
+        type, value, traceback = sys.exc_info()
+        logSevere("Unexpected error in ElasticSearch:urlDetect:" + `value`)
     
     return array(urls, String)
     
@@ -246,6 +241,7 @@ def archiveDeploy(archiveName, archiveLocators):
         type, value, traceback = sys.exc_info()
         logSevere("Unexpected error in ElasticSearch:archiveDeploy:" + `value`)
     ContainerUtils.retrieveAndConfigureArchiveFile(proxy.container, archiveName, archiveLocators, None)
+    logInfo("End of deploying archive " + archiveName)
         
 
 def archiveStart(archiveName):
@@ -265,7 +261,7 @@ def archiveUndeploy(archiveName, properties):
     logInfo("undeploying archive " + archiveName)
     archiveFile = os.path.join(archivesDir, archiveName)
     logInfo("Deleting " + archiveFile)
-    os.remove(archiveFile) 
+    os.remove(archiveFile)
 
 class ElasticSearch:
     
@@ -307,10 +303,11 @@ class ElasticSearch:
 
         self.__hostIp = getVariableValue('ES_HOST_IP')
         self.__httpPort = getVariableValue('HTTP_PORT')
-        self.__httpPortInt = int(self.__httpPort)
-        self.__randomnum = int(random.randint(1,100))
-        
         self.__tcpPort = getVariableValue('ES_TCP_PORT')
+        
+        self.__httpPortInt = int(self.__httpPort)
+        self.__maxRandom = int(getVariableValue('PORT_RANDOM_MAX_OFFSET'))
+        self.__randomnum = int(random.randint(1,self.__maxRandom))
         self.__tcpPortInt = int(self.__tcpPort)
         
         #generate unique TCP port :
@@ -318,18 +315,29 @@ class ElasticSearch:
         runtimeContext.addVariable(RuntimeContextVariable("ES_TCP_PORT", self.__tcpPort, RuntimeContextVariable.STRING_TYPE, "TCP PORT Random Number", False, RuntimeContextVariable.NO_INCREMENT))
         #generate unique Http Port :
         self.__httpPort = str(self.__httpPortInt + self.__randomnum)
+        
+        self.__baseUrl = self.__hostIp+":"+self.__tcpPort
+        self.__baseUrlHttp = "http://"+self.__hostIp+":"+self.__httpPort
         runtimeContext.addVariable(RuntimeContextVariable("HTTP_PORT", self.__httpPort, RuntimeContextVariable.STRING_TYPE, "HTTP PORT Random Number", False, RuntimeContextVariable.NO_INCREMENT))
-        self.__master = getVariableValue('isMaster')
+        self.__master = getVariableValue('isPrimaryNode')
         if self.__master == "True":
-            runtimeContext.addVariable(RuntimeContextVariable("FIRST_DEPLOYED_MASTER_ADDR", "", RuntimeContextVariable.STRING_TYPE, "Master Endpoint for Clustering", False, RuntimeContextVariable.NO_INCREMENT))
-            runtimeContext.addVariable(RuntimeContextVariable("MASTER_ENDPOINT", self.__hostIp+":"+self.__httpPort, RuntimeContextVariable.STRING_TYPE, "Master Endpoint for Clustering", True, RuntimeContextVariable.NO_INCREMENT))
+            runtimeContext.addVariable(RuntimeContextVariable("EXPORTED_CLUSTER_ENDPOINT", "", RuntimeContextVariable.STRING_TYPE, "Master Endpoint for Clustering", False, RuntimeContextVariable.NO_INCREMENT))
+            runtimeContext.addVariable(RuntimeContextVariable("MASTER_ENDPOINT", self.__baseUrl, RuntimeContextVariable.STRING_TYPE, "Master Endpoint for Clustering", True, RuntimeContextVariable.NO_INCREMENT))
         else:
             self.__myMasterEndpoint = getVariableValue('MASTER_ENDPOINT')
-            runtimeContext.addVariable(RuntimeContextVariable("FIRST_DEPLOYED_MASTER_ADDR", self.__myMasterEndpoint, RuntimeContextVariable.STRING_TYPE, "Master Endpoint for Clustering", False, RuntimeContextVariable.NO_INCREMENT))
+            runtimeContext.addVariable(RuntimeContextVariable("EXPORTED_CLUSTER_ENDPOINT", self.__myMasterEndpoint, RuntimeContextVariable.STRING_TYPE, "Master Endpoint for Clustering", False, RuntimeContextVariable.NO_INCREMENT))
         self.__httpRoutePrefix = getVariableValue("CLUSTER_NAME")
-        self.__prefix = "/elasticsearch/" + self.__httpRoutePrefix 
+        self.__prefix = "/" + self.__httpRoutePrefix 
         runtimeContext.addVariable(RuntimeContextVariable("HTTP_PREFIX", self.__prefix, RuntimeContextVariable.STRING_TYPE, "PREFIX", False, RuntimeContextVariable.NO_INCREMENT))
         self.__pidfile = os.path.join(self.__workdir, "elasticsearch.pid")
+        
+        self.__toggleCheck = False
+        
+        #generate unique Node Name :
+        
+        self.__hostname = getVariableValue("ENGINE_USERNAME")
+        self.__nodeName = "ElasticSearch-"+self.__hostname+"-"+str(self.__hostIp).replace(".","_")+":"+self.__httpPort+"-Node"
+        runtimeContext.addVariable(RuntimeContextVariable("NODE_NAME", self.__nodeName, RuntimeContextVariable.STRING_TYPE, "Auto Generated Node Name", False, RuntimeContextVariable.NO_INCREMENT))
         
         call(["touch", self.__pidfile])
         call(["chmod", "777", self.__pidfile])
@@ -362,29 +370,35 @@ class ElasticSearch:
         archiveMgmtFeature = ContainerUtils.getFeatureInfo("Archive Management Support", proxy.container, proxy.container.currentDomain)
         archivesDir = os.path.join(self.__enginedir, archiveMgmtFeature.archiveDirectory)
         logInfo("Found archives dir " + archivesDir)
+        self.__toggleCheck = True
         logInfo("startNode:Exit")
+        
         
     def stopNode(self):
         self.__endpoint = "/_cluster/nodes/_local/_shutdown"
-        self.__url = "http://"+self.__hostIp+":"+self.__httpPort+self.__endpoint
-        self.__req = urllib2.Request(self.__url, data="")
-        logInfo("shutdown request at : "+ self.__url)
-        try:
-            self.__f = urllib2.urlopen(self.__req)
-        except IOError, e:
-            if hasattr(e, 'reason'):
-                logInfo("Failed to reach the server")
-                logInfo("Reason :" + str(e.reason))
-            elif hasattr(e, 'code'):
-                logInfo("The server couldn\'t fullfill the request.")
-                logInfo("Error code :" + str(e.code))
-        else:
-            dataRaw = self.__f.read()
-            self.__f.close()
-        time.sleep(1)
-    
-    
+        self.__response = self.jsonRequest(self.__endpoint, "")
+        if len(self.__response) > 0:
+            logInfo("Shutdown Response" + str(self.__response))
+        self.__toggleCheck = False
+
+    def getPublishedUrls(self):
+        self.__urls = []
+        self.__endpoint = "/_nodes/_local/plugin"
+        logInfo("Retrieving plugins URL")
+        if self.__toggleCheck:
+            self.__response = self.jsonRequest(self.__endpoint, None)
+            if len(self.__response) > 0:
+                self.__contextUrls = jpath.read(self.__response, "$.nodes.*.plugins.url")
+                for self.__contextUrl in self.__contextUrls:
+                    logInfo("Adding context : " + str(self.__contextUrl))
+                    self.__urls.append(str(self.__contextUrl))
+            self.__urls.append(self.__prefix) #default context       
+        return self.__urls
+        
     def killNode(self):
+        logInfo('stopping node gently first')
+        self.__toggleCheck = False
+        self.stopNode()
         logInfo("Node will be killed...")
         self.__pidf = open(self.__pidfile, "r")
         self.__pids = self.__pidf.readlines()
@@ -393,7 +407,8 @@ class ElasticSearch:
         
         os.kill(self.__pid, signal.SIGKILL)
         logInfo("kill pid : " + str(self.__pid))
-
+        time.sleep(5)
+                
     def getStatistic(self, __statname):
         #split stats path
         self.__stat = __statname.split(":")          
@@ -401,29 +416,15 @@ class ElasticSearch:
         self.__keyname = self.__stat[1]
         logFiner("Getting Statistics for : "+__statname)    
         self.__statvalue = 0.0
-        self.__url = "http://"+self.__hostIp+":"+self.__httpPort+"/_nodes/_local/"+self.__indexname+"/stats"
-        logFiner("Retrieving stat from : " + self.__url)
-        self.__req = urllib2.Request(self.__url, None, {'Content-Type': 'application/json'})
-        try:
-            f = urllib2.urlopen(self.__req)
-        except IOError, e:
-            if hasattr(e, 'reason'):
-                logInfo("Failed to reach the server")
-                logInfo("Reason :" + str(e.reason))
-            elif hasattr(e, 'code'):
-                logInfo("The server couldn\'t fullfill the request.")
-                logInfo("Error code :" + str(e.code))
-                logInfo("Error with the URL ?, probably the index is unsupported ??")
-                logInfo("Supported values for statistic index: indices,os,fs,http,jvm,process,thread_pool,transport,network")
-        else:
-            self.__dataRaw = f.read()
-            f.close()
-            if len(self.__stat) > 2:
-                self.__subkeyname = self.__stat[2]
-                self.__statvalue = jpath.read(self.__dataRaw, "$.nodes.*."+self.__indexname+"."+self.__keyname+"."+self.__subkeyname)
-            else:
-                self.__statvalue = jpath.read(self.__dataRaw, "$.nodes.*."+self.__indexname+"."+self.__keyname)
-            
+        self.__endpoint = "/_nodes/_local/"+self.__indexname+"/stats"
+        if self.__toggleCheck:
+            self.__response = self.jsonRequest(self.__endpoint, None)
+            if len(self.__response) > 0:
+                if len(self.__stat) > 2:
+                    self.__subkeyname = self.__stat[2]
+                    self.__statvalue = jpath.read(self.__response, "$.nodes.*."+self.__indexname+"."+self.__keyname+"."+self.__subkeyname)
+                else:
+                    self.__statvalue = jpath.read(self.__response, "$.nodes.*."+self.__indexname+"."+self.__keyname)
                      
         return str(self.__statvalue[0])
          
@@ -436,49 +437,35 @@ class ElasticSearch:
     
     def installPlugins(self, archivename, archivepath):
         logInfo("Installing Plugin : " + archivename)
-#        self.__PLUGINS_ARGS = " --url file://"+ os.path.join(archivepath , archivename) + " --install " + archivename
-#        if ContainerUtils.isWindows():
-#            self.__PLUGINS_CMD = os.path.join(self.__bindir,"plugin.bat")
-#        else:
-#            self.__PLUGINS_CMD = os.path.join(self.__bindir,"plugin")
-#            
-#        self.__CMD = self.__PLUGINS_CMD + self.__PLUGINS_ARGS
         self.__archiveFile = os.path.join(archivepath , archivename)
         if os.path.exists(self.__archiveFile):
             self.extract(self.__archiveFile, self.__plugdir)
         else:
             logInfo("Archive not Found ! at : " + self.__archiveFile)
-        
-   
-         
+  
     def getNodeStatus(self):
         logInfo("getNodeStatus:Enter")
         self.__returnStatus = 0
-        self.__url = "http://"+self.__hostIp+":"+self.__httpPort+"/_nodes/_local"
-        self.__req = urllib2.Request(self.__url, None, {'Content-Type': 'application/json'})
-        logFiner("Retrieving Status from : "+ self.__url)
-        try:
-            self.__f = urllib2.urlopen(self.__req)
-        except IOError, e:
-            if hasattr(e, 'reason'):
-                logInfo("Failed to reach the server")
-                logInfo("Reason :" + str(e.reason))
-            elif hasattr(e, 'code'):
-                logInfo("The server couldn\'t fullfill the request.")
-                logInfo("Error code :" + str(e.code))
-        else:
-            self.__dataRaw = self.__f.read()
-            self.__status = jpath.read(self.__dataRaw, "$.ok")
-            self.__f.close()
-            logFiner("status : "+ str(self.__status))
-            if (self.__status):
-                logFiner("Node status is OK")
-                self.__returnStatus = 0
-            else :
-                logFiner("Node status is KO")
+        self.__endpoint = "/_nodes/_local"
+        logInfo("Active checking is set to : " + str(self.__toggleCheck))
+        if self.__toggleCheck:
+            self.__resp = self.jsonRequest(self.__endpoint, None)
+            if len(self.__resp) > 0:
+                self.__status = jpath.read(self.__resp, "$.ok")
+                logFiner("status : "+ str(self.__status))
+                if (self.__status):
+                    logFiner("Node status is OK")
+                    self.__returnStatus = 0
+                else:
+                    logInfo("Node status is KO")
+                    self.__returnStatus = 1
+            else:
+                logInfo("Node status is KO and Unreachable")
                 self.__returnStatus = 1
+        else:
+            self.__returnStatus = 0
         
-        logInfo("getNodeStatus:Enter")
+        logInfo("getNodeStatus:Exit")
         return self.__returnStatus
     
     def installActivationInfo(self, info):
@@ -487,7 +474,53 @@ class ElasticSearch:
         self.__httpinfo.setRouteDirectlyToEndpoints(True)
         self.__httpinfo.setRoutingPrefix(self.__prefix)
         self.__httpinfo.addRelativeUrl("/")
+    
+    def jsonRequest(self, endpoint, data=None):
+        logInfo("JsonRequest:Enter")
+        self.__url = urlparse(self.__baseUrlHttp+str(endpoint))
+        self.__headers = {'Accept': 'application/json', 'Content-Type': 'application/json; charset=UTF-8'}
+        logInfo("JsonRequest:urlparse:url:"+  str(self.__url.geturl()))
+        self.__domain = self.__url.netloc
+        self.__path = self.__url.path
+        self.__json = None
+        self.__conn = None
+        self.__response = None
+        try:
+            logInfo("JsonRequest:conn():url: "+  self.__url.geturl() + " on domain : " + self.__domain) 
+            self.__conn = httplib.HTTPConnection(self.__domain)
+            self.__conn.connect()
+        except httplib.HTTPException, ex:
+            logInfo("JsonRequest:conn():Failure")
+            logInfo("HTTPException :" + str(ex))
+        else:
+            logInfo("JsonRequest:conn():Success")
+            if data != None:
+#                data as to be data = {'{""}'}
+                self.__body = urllib.urlencode(data)
+                try:
+                    logInfo("JsonRequest:conn():Request:POST")
+                    self.__conn.request('POST', self.__path, self.__body, self.__headers)
+                except httplib.HTTPException, ex:
+                    logInfo("HTTPException :" + str(ex))
+                else:
+                    self.__response = self.__conn.getresponse()
+            else:
+                try:
+                    logInfo("JsonRequest:conn():Request:GET")
+                    self.__conn.request('GET', self.__path, None, self.__headers)
+                except httplib.HTTPException, ex:
+                    logInfo("HTTPException :" + str(ex))
+                else:
+                    logInfo("JsonRequest:conn():Request:Success")
+                    self.__response = self.__conn.getresponse()
+                    logInfo("JsonRequest:conn():getResponse:Success")
+                    logInfo("Response Reason, Response Status : " + str(self.__response.reason) + " : " + str(self.__response.status))
         
+        if self.__response.status == 200:
+            self.__json = self.__response.read()
+            self.__conn.close()    
+        logInfo("JsonRequest:Exit")
+        return self.__json
 
 class UnZipFile:
     def __init__(self, verbose = False, percent = 10):

@@ -154,6 +154,26 @@
             <property name="description" value="Set the number of replicas (additional copies) of an index"/>
         </variable>
         <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
+            <property name="name" value="NODE_NAME"/>
+            <property name="value" value=""/>
+            <property name="type" value="String"/>
+        </variable>
+        <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
+            <property name="name" value="ES_NODE_TYPE_MASTER"/>
+            <property name="value" value="true"/>
+            <property name="type" value="String"/>
+        </variable>
+        <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
+            <property name="name" value="ES_NODE_TYPE_DATA"/>
+            <property name="value" value="true"/>
+            <property name="type" value="String"/>
+        </variable>
+        <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
+            <property name="name" value="PORT_RANDOM_MAX_OFFSET"/>
+            <property name="value" value="200"/>
+            <property name="type" value="String"/>
+        </variable>
+        <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
             <property name="name" value="ES_HOST_IP"/>
             <property name="value" value="${LISTEN_ADDRESS}"/>
             <property name="description" value="Set binding addr for this instance"/>
@@ -188,7 +208,7 @@
             <property name="description" value="Pass any specific Java Options"/>
         </variable>
         <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
-            <property name="name" value="isMaster"/>
+            <property name="name" value="isPrimaryNode"/>
             <property name="value" value="True"/>
             <property name="type" value="String"/>
             <property name="description" value="Set it for First Node only, Slaves will use this to form the cluster"/>
@@ -217,6 +237,12 @@
         <property name="name" value="Archive Management Support"/>
         <property name="description" value="Support for managing archives"/>
         <property name="infoClass" value="com.datasynapse.fabric.domain.featureinfo.ArchiveManagementFeatureInfo"/>
+    </supportedFeature>
+    <supportedFeature class="com.datasynapse.fabric.container.Feature">
+        <property name="name" value="Application Logging Support"/>
+        <property name="description" value="Support for handling of custom application logs"/>
+        <property name="infoDescription" value="Specify how often checkpoint copies of application log files are made, and whether or not application logs are archived upon deactivation."/>        
+        <property name="infoClass" value="com.datasynapse.fabric.domain.featureinfo.ApplicationLoggingInfo"/>
     </supportedFeature>
 <statisticsProvider class="com.datasynapse.fabric.stats.provider.ContainerScriptStatisticsProvider">
 

@@ -36,6 +36,7 @@ The Distribution Grid Library is created by performing the following steps:
 
 *****************************************************************************
 NOTE: As of now, only 64-bit linux has been tested !
+NOTE: Linux distros being tested : Centos 6.X, DEBIAN 7.X , RHEL 6.X
 ******************************************************************************
 ```bash
 mvn package -Ddistribution.location=/home/you/Downloads/ \
@@ -64,9 +65,9 @@ Then upload this distribution to the Tibco Silver Fabric Manager
 Supported Features
 --------------------------------------
 
-- [ ] ElasticSearch _site plugins detection
+- [x] ElasticSearch _site plugins detection
 - [x] ElasticSearch multicast clustering support
-- [ ] ElasticSearch unicast clustering support
+- [x] ElasticSearch unicast clustering support
 - [x] ElasticSearch statistics support
 - [x] ElasticSearch offline plugins support
 
@@ -103,11 +104,6 @@ They will be :
 - automatically installed and deployed
 - automatically updating URL to reach them
 
-NOTE TO MYSELF = As of 01/08/2013 - this is not yet fully, really implemented, just announced as a teaser ;-) 
-- HTTP routing will be updated to let you access to them (wherever they are _site or _plugs)
-- url detection and update
-- other fun stuff
-- plugins installation
 
 Runtime Context Variables
 --------------------------------------
@@ -118,20 +114,28 @@ Take a look at the container.xml file in the src/main/resources/runtime/ subdire
 
 Common Variables 
 --------------------------------------
-(Change as Desired)
+(Change as Desired) syntax is : <Variable Name> : <Description> : <Accepted Values> / [<Default value]
 * ES_DATA_DIR : path where the data files are located; 
 			NOTE: for persistence across engine hosts, it is recommended you
                   specify a network-mounted directory for this variable.
                   Changing this might also affect other variables (e.g, CAPTURE_INCLUDES)              
-
-* HTTP_PORT : port where this elasticsearch node listens for connections
-* ES_CONF_DIR : path where the conf files are located;
+* ES_CONF_DIR : path where the conf files are located : [${ES_BASE_DIR}/config]
 		      NOTE: for persistence across engine hosts, it is recommended you
                   specify a network-mounted directory for this variable.
-* ES_LOG_DIR : path where the logs files are located;
+* ES_LOG_DIR : path where the logs files are located : [${ES_BASE_DIR}/logs]
 			NOTE: for persistence across engine hosts, it is recommended you
                   specify a network-mounted directory for this variable.
 * CLUSTER_NAME : Define the name of the cluster even if a single node is used
+* MULTICAST_ENABLED : Define is multicast should be used for Clustering,look at ElasticSearch Clusering how-to for more details : true / [false]
+* ES_NODE_TYPE_MASTER : Define if this instance node should be considered as an master : [true] / false
+* ES_NODE_TYPE_DATA : Define if this instance node should be considered as an data node : [true] / false
+* HTTP_PORT : HTTP port where this elasticsearch node listens for connections or Rest requests : [18000]
+* ES_TCP_PORT : port where this elasticsearch node to node communication : [17000]
+* ES_MAX_MEM : set the maximum memory for elasticsearch instances : [2048m] 
+* ES_MIN_MEM : set the minimum memory for elasticsearch instances : [2048m]
+* PORT_RANDOM_MAX_OFFSET : offset to be added on http and tcp port, to enforce uniqness (horizontal sclaing and vertical scaling)
+
+
 
 Power Variables 
 --------------------------------------
@@ -150,6 +154,17 @@ Internal Variables
 
 ****************************************************************************************
 
+ElasticSearch Unicast Clustering
+--------------------------------------
+Follow simply this recipe :
+1° Create an ElasticSearch Component called let say ElasticPrimary
+2° Create and ElasticSearch Component called let say ElasticNodes
+3° edit ElasticNodes Component to set the variable isPrimaryNode to 'False' (Capital letter matters)
+4° create an stack, and add ElasticPrimary, ElasticNodes
+5° add and dependency for  ElasticNodes on ElasticPrimary without shutdown
+
+Run the stack
+
 How to play with 
 --------------------------------------
 TIBCO Silver Fabric will publish access to the cluster thru :
@@ -159,4 +174,5 @@ this address will be resolved/translated to the endpoint directly (one of the El
 Cool things to use against ElasticSearch
 --------------------------------------
 You could take a look at http://www.scrutmydocs.org/, which rely on an elasticsearch cluster for storing, finding, indexing documents
+You may also want to enable : logstash (index and store logs to elasticsearch) and lumberjack (send logs to logstach) and kibana3 as a front end (http://http://demo.kibana.org/#/dashboard)
 

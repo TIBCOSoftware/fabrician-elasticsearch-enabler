@@ -37,18 +37,18 @@
 # Node names are generated dynamically on startup, so you're relieved
 # from configuring them manually. You can tie this node to a specific name:
 #
- node.name: "ElasticSearch-${ENGINE_USERNAME}-Node"
+ node.name: "${NODE_NAME}"
 
 # Every node can be configured to allow or deny being eligible as the master,
 # and to allow or deny to store the data.
 #
 # Allow this node to be eligible as a master node (enabled by default):
 #
- node.master: true
+ node.master: ${ES_NODE_TYPE_MASTER}
 #
 # Allow this node to store data (enabled by default):
 #
- node.data: true
+ node.data: ${ES_NODE_TYPE_DATA}
 
 # You can exploit these settings to design advanced cluster topologies.
 #
@@ -305,7 +305,7 @@
 # Set this option to a higher value on a slow or congested network
 # to minimize discovery failures:
 #
- discovery.zen.ping.timeout: 30s
+ discovery.zen.ping.timeout: 3s
 
 # See <http://elasticsearch.org/guide/reference/modules/discovery/zen.html>
 # for more information.
@@ -324,7 +324,7 @@
 #
 # discovery.zen.ping.unicast.hosts: ["host1", "host2:port", "host3[portX-portY]"]
 
- discovery.zen.ping.unicast.hosts: "${FIRST_DEPLOYED_MASTER_ADDR}"
+ discovery.zen.ping.unicast.hosts: ["${EXPORTED_CLUSTER_ENDPOINT}"]
 
 # EC2 discovery allows to use AWS EC2 API in order to perform discovery.
 #
