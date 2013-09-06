@@ -116,15 +116,21 @@ Common Variables
 --------------------------------------
 (Change as Desired) syntax is : \<Variable Name\> : \<Description\> : \<\Accepted Values\> / [<Default value]
 * ES_DATA_DIR : path where the data files are located
+```
 NOTE: for persistence across engine hosts, it is recommended you
 specify a network-mounted directory for this variable.
-Changing this might also affect other variables (e.g, CAPTURE_INCLUDES)              
-* ES_CONF_DIR : path where the conf files are located : [${ES_BASE_DIR}/config];
+Changing this might also affect other variables (e.g, CAPTURE_INCLUDES)
+```           
+* ES_CONF_DIR : path where the conf files are located : [${ES_BASE_DIR}/config]
+```
 NOTE: for persistence across engine hosts, it is recommended you
 specify a network-mounted directory for this variable.
-* ES_LOG_DIR : path where the logs files are located : [${ES_BASE_DIR}/logs];
+```
+* ES_LOG_DIR : path where the logs files are located : [${ES_BASE_DIR}/logs]
+```
 NOTE: for persistence across engine hosts, it is recommended you
 specify a network-mounted directory for this variable.
+```
 * CLUSTER_NAME : Define the name of the cluster even if a single node is used
 * MULTICAST_ENABLED : Define is multicast should be used for Clustering,look at ElasticSearch Clusering how-to for more details : true / [false]
 * ES_NODE_TYPE_MASTER : Define if this instance node should be considered as an master : [true] / false
@@ -174,6 +180,6 @@ this address will be resolved/translated to the endpoint directly (one of the El
 
 Cool things to use against ElasticSearch
 --------------------------------------
-You could take a look at http://www.scrutmydocs.org/, which rely on an elasticsearch cluster for storing, finding, indexing documents
-You may also want to enable : logstash (index and store logs to elasticsearch) and lumberjack (send logs to logstach) and kibana3 as a front end (http://demo.kibana.org/#/dashboard)
+1. take a look at http://www.scrutmydocs.org/, which rely on an elasticsearch cluster for storing, finding, indexing documents
+2. You may want to enable : logstash (index and store logs to elasticsearch) and lumberjack (send logs to logstach) and kibana3 as a front end : http://demo.kibana.org/#/dashboard
 
