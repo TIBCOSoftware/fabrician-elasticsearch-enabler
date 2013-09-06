@@ -114,17 +114,17 @@ Take a look at the container.xml file in the src/main/resources/runtime/ subdire
 
 Common Variables 
 --------------------------------------
-(Change as Desired) syntax is : <Variable Name> : <Description> : <Accepted Values> / [<Default value]
-* ES_DATA_DIR : path where the data files are located; 
-			NOTE: for persistence across engine hosts, it is recommended you
-                  specify a network-mounted directory for this variable.
-                  Changing this might also affect other variables (e.g, CAPTURE_INCLUDES)              
-* ES_CONF_DIR : path where the conf files are located : [${ES_BASE_DIR}/config]
-		      NOTE: for persistence across engine hosts, it is recommended you
-                  specify a network-mounted directory for this variable.
-* ES_LOG_DIR : path where the logs files are located : [${ES_BASE_DIR}/logs]
-			NOTE: for persistence across engine hosts, it is recommended you
-                  specify a network-mounted directory for this variable.
+(Change as Desired) syntax is : \<Variable Name\> : \<Description\> : \<\Accepted Values\> / [<Default value]
+* ES_DATA_DIR : path where the data files are located
+NOTE: for persistence across engine hosts, it is recommended you
+specify a network-mounted directory for this variable.
+Changing this might also affect other variables (e.g, CAPTURE_INCLUDES)              
+* ES_CONF_DIR : path where the conf files are located : [${ES_BASE_DIR}/config];
+NOTE: for persistence across engine hosts, it is recommended you
+specify a network-mounted directory for this variable.
+* ES_LOG_DIR : path where the logs files are located : [${ES_BASE_DIR}/logs];
+NOTE: for persistence across engine hosts, it is recommended you
+specify a network-mounted directory for this variable.
 * CLUSTER_NAME : Define the name of the cluster even if a single node is used
 * MULTICAST_ENABLED : Define is multicast should be used for Clustering,look at ElasticSearch Clusering how-to for more details : true / [false]
 * ES_NODE_TYPE_MASTER : Define if this instance node should be considered as an master : [true] / false
@@ -133,7 +133,7 @@ Common Variables
 * ES_TCP_PORT : port where this elasticsearch node to node communication : [17000]
 * ES_MAX_MEM : set the maximum memory for elasticsearch instances : [2048m] 
 * ES_MIN_MEM : set the minimum memory for elasticsearch instances : [2048m]
-* PORT_RANDOM_MAX_OFFSET : offset to be added on http and tcp port, to enforce uniqness (horizontal sclaing and vertical scaling)
+* PORT_RANDOM_MAX_OFFSET : offset to be added on http and tcp port, to enforce uniq (horizontal sclaing and vertical scaling) port usage
 
 
 
@@ -157,11 +157,12 @@ Internal Variables
 ElasticSearch Unicast Clustering
 --------------------------------------
 Follow simply this recipe :
-1° Create an ElasticSearch Component called let say ElasticPrimary
-2° Create and ElasticSearch Component called let say ElasticNodes
-3° edit ElasticNodes Component to set the variable isPrimaryNode to 'False' (Capital letter matters)
-4° create an stack, and add ElasticPrimary, ElasticNodes
-5° add and dependency for  ElasticNodes on ElasticPrimary without shutdown
+
+1. Create an ElasticSearch Component called let say ElasticPrimary
+2. Create and ElasticSearch Component called let say ElasticNodes
+3. edit ElasticNodes Component to set the variable isPrimaryNode to 'False' (Capital letter matters)
+4. create an stack, and add ElasticPrimary, ElasticNodes
+5. add and dependency for  ElasticNodes on ElasticPrimary without shutdown
 
 Run the stack
 
@@ -174,5 +175,5 @@ this address will be resolved/translated to the endpoint directly (one of the El
 Cool things to use against ElasticSearch
 --------------------------------------
 You could take a look at http://www.scrutmydocs.org/, which rely on an elasticsearch cluster for storing, finding, indexing documents
-You may also want to enable : logstash (index and store logs to elasticsearch) and lumberjack (send logs to logstach) and kibana3 as a front end (http://http://demo.kibana.org/#/dashboard)
+You may also want to enable : logstash (index and store logs to elasticsearch) and lumberjack (send logs to logstach) and kibana3 as a front end (http://demo.kibana.org/#/dashboard)
 
