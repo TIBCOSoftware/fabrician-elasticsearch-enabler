@@ -376,46 +376,7 @@ class ElasticSearch:
         archivesDir = os.path.join(self.__enginedir, archiveMgmtFeature.archiveDirectory)
         logInfo("Found archives dir " + archivesDir)
         self.__toggleCheck = True
-        #self.__health = self.waitForStart()
-        #if self.__health != 0:
-        #    logInfo("Error during node Startup, Node is not started/reachable")
         logInfo("startNode:Exit")
-        
-    def waitForStart(self):
-        logInfo("waitForStart:Enter")
-        self.__endpoint = "/_nodes/_local"
-        self.__timeout = 60
-        self.__counter = 0
-        self.__returnStatus = 1      
-        if self.__toggleCheck:
-            while self.__returnStatus != 0 or self.__counter <= self.__timeout:
-                self.__resp = self.jsonRequest(self.__endpoint, None)
-                if len(self.__resp) > 0:
-                    self.__status = jpath.read(self.__resp, "$.ok")
-                    logFiner("status : "+ str(self.__status))
-                    if (self.__status):
-                        logFiner("Node status is OK")
-                        self.__returnStatus = 0
-                    else:
-                        logInfo("Node status is KO")
-                        self.__returnStatus = 1
-                        self.__counter = self.__counter + 5
-                        time.sleep(5)
-                else:
-                    logInfo("Node status is KO and Unreachable")
-                    self.__returnStatus = 1
-                    self.__counter = self.__counter + 5
-                    time.sleep(5)
-            else:
-               if self.__counter <= self.__timeout:
-                   self.__returnStatus = 0
-               else:
-                   self.__returnStatus = 1
-                   logInfo("Timeout reached for checking status")
-        else:
-            self.__returnStatus = 0
-                
-                
              
     def stopNode(self):
         self.__endpoint = "/_cluster/nodes/_local/_shutdown"
