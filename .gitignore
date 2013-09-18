@@ -14,3 +14,6 @@ Thumbs.db
 *.tar
 *.zip
 *.jar
+.pydevproject
+.project
+.settings

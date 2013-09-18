@@ -166,7 +166,7 @@ Follow simply this recipe :
 
 1. Create an ElasticSearch Component called let say ElasticPrimary
 2. Create and ElasticSearch Component called let say ElasticNodes
-3. edit ElasticNodes Component to set the variable isPrimaryNode to 'False' (Capital letter matters)
+3. edit "ElasticNodes" Component to set the variable isPrimaryNode to 'False' (Capital letter matters)
 4. create an stack, and add ElasticPrimary, ElasticNodes
 5. add and dependency for  ElasticNodes on ElasticPrimary without shutdown
 
@@ -183,3 +183,40 @@ Cool things to use against ElasticSearch
 1. take a look at http://www.scrutmydocs.org/, which rely on an elasticsearch cluster for storing, finding, indexing documents
 2. You may want to enable : logstash (index and store logs to elasticsearch) and lumberjack (send logs to logstach) and kibana3 as a front end : http://demo.kibana.org/#/dashboard
 
+Testing
+--------------------------------------
+1. Create an ElasticSearch Component called let say ElasticPrimary
+2. Add the Head plugin : http://mobz.github.io/elasticsearch-head/
+3. Add the river rss : http://www.pilato.fr/rssriver/
+4. Create and ElasticSearch Component called let say ElasticNodes
+5. Add the Head plugin : http://mobz.github.io/elasticsearch-head/
+6. Add the river rss : http://www.pilato.fr/rssriver/
+7. Edit "ElasticNodes" Component to set the variable isPrimaryNode to 'False' (Capital letter matters)
+8. Create an stack, and add ElasticPrimary, ElasticNodes
+9. Add and dependency for  ElasticNodes on ElasticPrimary without shutdown
+10. Run the stack, wait a couple a secs, min to be fully operational
+11. Run the following curl commands :
+```bash
+curl -XPUT 'http://\<FullyQualifiedSFinstanceHostname\>:\<SFPort\>/\<ClusterName\>/lefigaro/' -d '{}'
+curl -XPUT 'http://\<FullyQualifiedSFinstanceHostname\>:\<SFPort\>/\<ClusterName\>/lefigaro/page/_mapping' -d '{
+  "page" : {
+    "properties" : {
+      "title" : {"type" : "string", "analyzer" : "french"},
+      "description" : {"type" : "string", "analyzer" : "french"},
+      "author" : {"type" : "string"},
+      "link" : {"type" : "string"}
+    }
+  }
+}' 
+curl -XPUT 'http://\<FullyQualifiedSFinstanceHostname\>:\<SFPort\>/\<ClusterName\>/_river/lefigaro/_meta' -d '{
+  "type": "rss",
+  "rss": {
+    "feeds" : [ {
+        "name": "lefigaro",
+        "url": "http://rss.lefigaro.fr/lefigaro/laune"
+        }
+    ]
+  }
+}'
+curl -XGET 'http://\<FullyQualifiedSFinstanceHostname\>:\<SFPort\>/\<ClusterName\>/lefigaro/_search?q=taxe'
+``
