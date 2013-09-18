@@ -195,7 +195,8 @@ Testing
 8. Create an stack, and add ElasticPrimary, ElasticNodes
 9. Add and dependency for  ElasticNodes on ElasticPrimary without shutdown
 10. Run the stack, wait a couple a secs, min to be fully operational
-11. Run the following curl commands :
+11. Run the following curl commands
+
 ```bash
 curl -XPUT 'http://\<FullyQualifiedSFinstanceHostname\>:\<SFPort\>/\<ClusterName\>/lefigaro/' -d '{}'
 ```
