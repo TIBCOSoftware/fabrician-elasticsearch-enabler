@@ -198,14 +198,14 @@ Testing
 11. Run the following curl commands
 
 ```bash
-curl -XPUT 'http://\<FullyQualifiedSFinstanceHostname\>:\<SFPort\>/\<ClusterName\>/lefigaro/' -d '{}'
+curl -L -XPUT 'http://\<FullyQualifiedSFinstanceHostname\>:\<SFPort\>/\<ClusterName\>/nytimes/' -d '{}'
 ```
 ```bash
-curl -XPUT 'http://\<FullyQualifiedSFinstanceHostname\>:\<SFPort\>/\<ClusterName\>/lefigaro/page/_mapping' -d '{
-  "page" : {
+curl -L -XPUT 'http://\<FullyQualifiedSFinstanceHostname\>:\<SFPort\>/\<ClusterName\>/nytimes/page/_mapping' -d '{
+"page" : {
     "properties" : {
-      "title" : {"type" : "string", "analyzer" : "french"},
-      "description" : {"type" : "string", "analyzer" : "french"},
+      "title" : {"type" : "string"},
+      "description" : {"type" : "string"},
       "author" : {"type" : "string"},
       "link" : {"type" : "string"}
     }
@@ -213,18 +213,55 @@ curl -XPUT 'http://\<FullyQualifiedSFinstanceHostname\>:\<SFPort\>/\<ClusterName
 }'
 ```
 ```bash
-curl -XPUT 'http://\<FullyQualifiedSFinstanceHostname\>:\<SFPort\>/\<ClusterName\>/_river/lefigaro/_meta' -d '{
-  "type": "rss",
+curl -L -XPUT 'http://\<FullyQualifiedSFinstanceHostname\>:\<SFPort\>/\<ClusterName\>/_river/nytimes/_meta' -d '{
+"type": "rss",
   "rss": {
     "feeds" : [ {
-        "name": "lefigaro",
-        "url": "http://rss.lefigaro.fr/lefigaro/laune"
+        "name": "nytimes",
+        "url": "http://www.nytimes.com/services/xml/rss/nyt/NYRegion.xml",
+	"update_rate": 30000,
+	"ignore_ttl": true
         }
     ]
   }
 }'
 ```
 ```bash
-curl -XGET 'http://\<FullyQualifiedSFinstanceHostname\>:\<SFPort\>/\<ClusterName\>/lefigaro/_search?q=taxe'
+curl -L -XGET 'http://\<FullyQualifiedSFinstanceHostname\>:\<SFPort\>/\<ClusterName\>/nytimes/_search?q=dogs'
 ```
+You should get something like this :
+```json
+{
 
+    took: 2
+    timed_out: false
+    _shards: {
+        total: 5
+        successful: 5
+        failed: 0
+    }
+    hits: {
+        total: 1
+        max_score: 0.09321462
+        hits: [
+            {
+                _index: nytimes
+                _type: page
+                _id: c4506023-c9d3-3bb9-bd7c-800f28e4d93b
+                _score: 0.09321462
+                _source: {
+                    feedname: nytimes
+                    title: City Room: New York Today: 7 Million Miles
+                    author: By ANDY NEWMAN
+                    description: What you need to know for Wednesday: New York goes the distance on Citi Bikes, a big lead for Bill de Blasio and a parade of dogs.<img width='1' height='1' src='http://rss.nytimes.com/c/34625/f/640367/s/3162a69f/sc/22/mf.gif' border='0'/><br clear='all'/><div class='mf-viral'><table border='0'><tr><td valign='middle'><a href="http://share.feedsportal.com/share/twitter/?u=http%3A%2F%2Fcityroom.blogs.nytimes.com%2F2013%2F09%2F18%2Fnew-york-today-7-million-miles%2F%3Fpartner%3Drss%26emc%3Drss&t=City+Room%3A+New+York+Today%3A+7+Million+Miles" target="_blank"><img src="http://res3.feedsportal.com/social/twitter.png" border="0" /></a>&nbsp;<a href="http://share.feedsportal.com/share/facebook/?u=http%3A%2F%2Fcityroom.blogs.nytimes.com%2F2013%2F09%2F18%2Fnew-york-today-7-million-miles%2F%3Fpartner%3Drss%26emc%3Drss&t=City+Room%3A+New+York+Today%3A+7+Million+Miles" target="_blank"><img src="http://res3.feedsportal.com/social/facebook.png" border="0" /></a>&nbsp;<a href="http://share.feedsportal.com/share/linkedin/?u=http%3A%2F%2Fcityroom.blogs.nytimes.com%2F2013%2F09%2F18%2Fnew-york-today-7-million-miles%2F%3Fpartner%3Drss%26emc%3Drss&t=City+Room%3A+New+York+Today%3A+7+Million+Miles" target="_blank"><img src="http://res3.feedsportal.com/social/linkedin.png" border="0" /></a>&nbsp;<a href="http://share.feedsportal.com/share/gplus/?u=http%3A%2F%2Fcityroom.blogs.nytimes.com%2F2013%2F09%2F18%2Fnew-york-today-7-million-miles%2F%3Fpartner%3Drss%26emc%3Drss&t=City+Room%3A+New+York+Today%3A+7+Million+Miles" target="_blank"><img src="http://res3.feedsportal.com/social/googleplus.png" border="0" /></a>&nbsp;<a href="http://share.feedsportal.com/share/email/?u=http%3A%2F%2Fcityroom.blogs.nytimes.com%2F2013%2F09%2F18%2Fnew-york-today-7-million-miles%2F%3Fpartner%3Drss%26emc%3Drss&t=City+Room%3A+New+York+Today%3A+7+Million+Miles" target="_blank"><img src="http://res3.feedsportal.com/social/email.png" border="0" /></a></td></tr></table></div><br/><br/><a href="http://da.feedsportal.com/r/176964385415/u/89/f/640367/c/34625/s/3162a69f/sc/22/rc/1/rc.htm"><img src="http://da.feedsportal.com/r/176964385415/u/89/f/640367/c/34625/s/3162a69f/sc/22/rc/1/rc.img" border="0"/></a><br/><a href="http://da.feedsportal.com/r/176964385415/u/89/f/640367/c/34625/s/3162a69f/sc/22/rc/2/rc.htm"><img src="http://da.feedsportal.com/r/176964385415/u/89/f/640367/c/34625/s/3162a69f/sc/22/rc/2/rc.img" border="0"/></a><br/><a href="http://da.feedsportal.com/r/176964385415/u/89/f/640367/c/34625/s/3162a69f/sc/22/rc/3/rc.htm"><img src="http://da.feedsportal.com/r/176964385415/u/89/f/640367/c/34625/s/3162a69f/sc/22/rc/3/rc.img" border="0"/></a><br/><br/><a href="http://da.feedsportal.com/r/176964385415/u/89/f/640367/c/34625/s/3162a69f/a2.htm"><img src="http://da.feedsportal.com/r/176964385415/u/89/f/640367/c/34625/s/3162a69f/a2.img" border="0"/></a><img width="1" height="1" src="http://pi.feedsportal.com/r/176964385415/u/89/f/640367/c/34625/s/3162a69f/a2t.img" border="0"/>
+                    link: http://cityroom.blogs.nytimes.com/2013/09/18/new-york-today-7-million-miles/?partner=rss&emc=rss
+                    publishedDate: 2013-09-18T16:02:34.000Z
+                    source: null
+                    river: nytimes
+                }
+            }
+        ]
+    }
+
+}
+```
