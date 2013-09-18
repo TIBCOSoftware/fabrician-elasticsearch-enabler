@@ -198,6 +198,8 @@ Testing
 11. Run the following curl commands :
 ```bash
 curl -XPUT 'http://\<FullyQualifiedSFinstanceHostname\>:\<SFPort\>/\<ClusterName\>/lefigaro/' -d '{}'
+```
+```bash
 curl -XPUT 'http://\<FullyQualifiedSFinstanceHostname\>:\<SFPort\>/\<ClusterName\>/lefigaro/page/_mapping' -d '{
   "page" : {
     "properties" : {
@@ -207,7 +209,9 @@ curl -XPUT 'http://\<FullyQualifiedSFinstanceHostname\>:\<SFPort\>/\<ClusterName
       "link" : {"type" : "string"}
     }
   }
-}' 
+}'
+```
+```bash
 curl -XPUT 'http://\<FullyQualifiedSFinstanceHostname\>:\<SFPort\>/\<ClusterName\>/_river/lefigaro/_meta' -d '{
   "type": "rss",
   "rss": {
@@ -218,5 +222,8 @@ curl -XPUT 'http://\<FullyQualifiedSFinstanceHostname\>:\<SFPort\>/\<ClusterName
     ]
   }
 }'
+```
+```bash
 curl -XGET 'http://\<FullyQualifiedSFinstanceHostname\>:\<SFPort\>/\<ClusterName\>/lefigaro/_search?q=taxe'
 ```
+
