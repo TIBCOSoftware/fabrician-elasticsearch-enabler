@@ -234,12 +234,17 @@ def archiveDeploy(archiveName, archiveLocators):
     logInfo("deploying archive " + archiveName)
     try:
         elastic = getVariableValue("ELASTICSEARCH_NODE_OBJECT")
-        elastic.killNode()
-        elastic.installPlugins(archiveName, archivesDir)
-        elastic.startNode()
     except:
         type, value, traceback = sys.exc_info()
         logSevere("Unexpected error in ElasticSearch:archiveDeploy:" + `value`)
+    else:
+        try:
+            elastic.killNode()
+        except:
+            pass
+        else:
+            elastic.installPlugins(archiveName, archivesDir)
+            elastic.startNode()
     ContainerUtils.retrieveAndConfigureArchiveFile(proxy.container, archiveName, archiveLocators, None)
     logInfo("End of deploying archive " + archiveName)
         
@@ -363,7 +368,7 @@ class ElasticSearch:
         logInfo("StartUp Command to be used : " + self.__CMD)
         args = shlex.split(self.__CMD)
         process = Popen(args,stdout=None,stderr=None,env=self.__environ,shell=False)
-        time.sleep(5)
+        time.sleep(20)
         logInfo("Start return Code : " + str(process.returncode))
         logInfo("finding the archivesDir")
         global archivesDir
@@ -371,9 +376,9 @@ class ElasticSearch:
         archivesDir = os.path.join(self.__enginedir, archiveMgmtFeature.archiveDirectory)
         logInfo("Found archives dir " + archivesDir)
         self.__toggleCheck = True
-        self.__health = self.waitForStart()
-        if self.__health != 0:
-            logInfo("Error during node Startup, Node is not started/reachable")
+        #self.__health = self.waitForStart()
+        #if self.__health != 0:
+        #    logInfo("Error during node Startup, Node is not started/reachable")
         logInfo("startNode:Exit")
         
     def waitForStart(self):
@@ -383,7 +388,7 @@ class ElasticSearch:
         self.__counter = 0
         self.__returnStatus = 1      
         if self.__toggleCheck:
-            while self.__status != 0 or self.__counter <= self.__timeout:
+            while self.__returnStatus != 0 or self.__counter <= self.__timeout:
                 self.__resp = self.jsonRequest(self.__endpoint, None)
                 if len(self.__resp) > 0:
                     self.__status = jpath.read(self.__resp, "$.ok")
@@ -430,7 +435,7 @@ class ElasticSearch:
                 for self.__contextUrl in self.__contextUrls:
                     logInfo("Adding context : " + str(self.__contextUrl))
                     self.__urls.append(str(self.__contextUrl))
-            self.__urls.append(self.__prefix) #default context       
+            self.__urls.append("/") #default context       
         return self.__urls
         
     def killNode(self):
