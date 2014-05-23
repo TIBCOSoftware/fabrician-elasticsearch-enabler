@@ -83,7 +83,7 @@ ulimit -l unlimited
     <USERNAME> hard nofile 32000
 ```
 
-On the engine Configuration in TIBCO SF, you shoul consider setting this
+On the engine Configuration in TIBCO SF, you should consider setting this
 ```bash
 set -XX:+CMSClassUnloadingEnabled  -XX:MaxPermSize=256m
 set JVM HEAP from 192 mb to 512 mb

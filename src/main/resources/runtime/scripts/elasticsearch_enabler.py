@@ -26,6 +26,8 @@ from java.lang import String
 
 
 import sys
+import stat
+import subprocess
 import zipfile
 import os
 import os.path
@@ -45,6 +47,7 @@ import shlex
 import zipfile
 import random
 import signal
+import threading
 from urlparse import urlparse
 
 from java.util import Properties
@@ -110,7 +113,7 @@ def logSevere(msg):
     logger.severe("[ElasticSearch_Enabler] " + msg)
 
 def getVariableValue(name, value=None):
-    logInfo("get runtime variable value")
+    logFiner("get runtime variable value")
     var = runtimeContext.getVariable(name)
     if var != None:
         value = var.value 
@@ -164,7 +167,7 @@ def getContainerRunningConditionPollPeriod():
     return 5000
 
 def isContainerRunning():
-    logInfo("isContainerRunning:Enter")
+    logFiner("isContainerRunning:Enter")
     status = False
     try:
         elastic = getVariableValue("ELASTICSEARCH_NODE_OBJECT")
@@ -176,7 +179,7 @@ def isContainerRunning():
     except:
         type, value, traceback = sys.exc_info()
         logSevere("Unexpected error in ElasticSearch:isContainerRunning:" + `value`)
-    logInfo("isContainerRunning:Exit")             
+    logFiner("isContainerRunning:Exit")
     return status
 ####
 # Return Running Conditions Errors
@@ -275,12 +278,22 @@ class ElasticSearch:
         self.__workdir = getVariableValue('CONTAINER_WORK_DIR')
         self.__basedir = getVariableValue('ES_BASE_DIR')
         self.__eshome = self.__basedir
+        self.lock = threading.Lock()
         runtimeContext.addVariable(RuntimeContextVariable("ES_HOME", self.__basedir, RuntimeContextVariable.ENVIRONMENT_TYPE, "ElasticSearch Home", False, RuntimeContextVariable.NO_INCREMENT))
         
         
         self.__bindir = os.path.join(self.__basedir , "bin")
         self.__enginedir = getVariableValue('ENGINE_WORK_DIR')
         self.__javahome = getVariableValue('GRIDLIB_JAVA_HOME')
+        #try do chmod to java home, just in case
+        if sys.platform.lower().find('win') != 0:
+            java_file_path = os.path.join(self.__javahome, 'bin/java')
+            try:
+                java_file_mode = os.stat(java_file_path).st_mode
+                if stat.S_IXUSR & java_file_mode == 0 :
+                    subprocess.call(["chmod", "-R", "0755", self.__javahome])
+            except OSError:
+                pass
         
         os.putenv("JAVA_HOME", self.__javahome)
         
@@ -448,7 +461,7 @@ class ElasticSearch:
             logInfo("Archive not Found ! at : " + self.__archiveFile)
   
     def getNodeStatus(self):
-        logInfo("getNodeStatus:Enter")
+        logFiner("getNodeStatus:Enter")
         self.__returnStatus = 0
         self.__endpoint = "/_nodes/_local"
         logInfo("Active checking is set to : " + str(self.__toggleCheck))
@@ -469,7 +482,7 @@ class ElasticSearch:
         else:
             self.__returnStatus = 0
         
-        logInfo("getNodeStatus:Exit")
+        logFiner("getNodeStatus:Exit")
         return self.__returnStatus
     
     def installActivationInfo(self, info):
@@ -480,50 +493,61 @@ class ElasticSearch:
         self.__httpinfo.addRelativeUrl("/")
     
     def jsonRequest(self, endpoint, data=None):
-        logInfo("JsonRequest:Enter")
+          self.lock.acquire()
+          try:
+	    return self.jsonRequest1(endpoint, data)
+          finally:
+            self.lock.release()
+
+
+    def jsonRequest1(self, endpoint, data=None):
+        logFiner("JsonRequest:Enter")
         self.__url = urlparse(self.__baseUrlHttp+str(endpoint))
         self.__headers = {'Accept': 'application/json', 'Content-Type': 'application/json; charset=UTF-8'}
-        logInfo("JsonRequest:urlparse:url:"+  str(self.__url.geturl()))
+        logFiner("JsonRequest:urlparse:url:"+  str(self.__url.geturl()))
         self.__domain = self.__url.netloc
         self.__path = self.__url.path
         self.__json = None
         self.__conn = None
         self.__response = None
         try:
-            logInfo("JsonRequest:conn():url: "+  self.__url.geturl() + " on domain : " + self.__domain) 
+            logFiner("JsonRequest:conn():url: "+  self.__url.geturl() + " on domain : " + self.__domain)
             self.__conn = httplib.HTTPConnection(self.__domain)
             self.__conn.connect()
         except httplib.HTTPException, ex:
-            logInfo("JsonRequest:conn():Failure")
-            logInfo("HTTPException :" + str(ex))
+            logFiner("JsonRequest:conn():Failure")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logFiner("HTTPException :" + str(ex) + ":" + str(exc_type))
         else:
-            logInfo("JsonRequest:conn():Success")
+            logFiner("JsonRequest:conn():Success")
             if data != None:
 #                data as to be data = {'{""}'}
                 self.__body = urllib.urlencode(data)
                 try:
-                    logInfo("JsonRequest:conn():Request:POST")
+                    logFiner("JsonRequest:conn():Request:POST")
                     self.__conn.request('POST', self.__path, self.__body, self.__headers)
                 except httplib.HTTPException, ex:
-                    logInfo("HTTPException :" + str(ex))
+                    exc_type, exc_obj, exc_tb = sys.exc_info()
+                    logFiner("HTTPException :" + str(ex) + ":" + str(exc_type))
                 else:
                     self.__response = self.__conn.getresponse()
             else:
                 try:
-                    logInfo("JsonRequest:conn():Request:GET")
+                    logFiner("JsonRequest:conn():Request:GET")
                     self.__conn.request('GET', self.__path, None, self.__headers)
                 except httplib.HTTPException, ex:
-                    logInfo("HTTPException :" + str(ex))
+                    exc_type, exc_obj, exc_tb = sys.exc_info()
+                    logFiner("HTTPException :" + str(ex) + ":" + str(exc_type))
                 else:
-                    logInfo("JsonRequest:conn():Request:Success")
+                    logFiner("JsonRequest:conn():Request:Success")
                     self.__response = self.__conn.getresponse()
-                    logInfo("JsonRequest:conn():getResponse:Success")
-                    logInfo("Response Reason, Response Status : " + str(self.__response.reason) + " : " + str(self.__response.status))
+                    logFiner("JsonRequest:conn():getResponse:Success")
+                    logFiner("Response Reason, Response Status : " + str(self.__response.reason) + " : " + str(self.__response.status))
         
         if self.__response.status == 200:
             self.__json = self.__response.read()
             self.__conn.close()    
-        logInfo("JsonRequest:Exit")
+        logFiner("JsonRequest:Exit")
         return self.__json
 
 class UnZipFile:
@@ -612,4 +636,4 @@ class UnZipFile:
 
             
             
-   
+
