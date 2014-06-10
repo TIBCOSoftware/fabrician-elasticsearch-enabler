@@ -107,7 +107,7 @@ def logInfo(msg):
     logger.info("[ElasticSearch_Enabler] " + msg)
    
 def logFiner(msg):
-    logger.fine("[ElasticSearch_Enabler] " + msg)
+    logger.finer("[ElasticSearch_Enabler] " + msg)
       
 def logSevere(msg):
     logger.severe("[ElasticSearch_Enabler] " + msg)
@@ -329,14 +329,14 @@ class ElasticSearch:
         self.__tcpPortInt = int(self.__tcpPort)
         
         #generate unique TCP port :
-        self.__tcpPort = str(self.__tcpPortInt + self.__randomnum)
-        runtimeContext.addVariable(RuntimeContextVariable("ES_TCP_PORT", self.__tcpPort, RuntimeContextVariable.STRING_TYPE, "TCP PORT Random Number", False, RuntimeContextVariable.NO_INCREMENT))
+        ##self.__tcpPort = str(self.__tcpPortInt + self.__randomnum)
+        ##runtimeContext.addVariable(RuntimeContextVariable("ES_TCP_PORT", self.__tcpPort, RuntimeContextVariable.STRING_TYPE, "TCP PORT Random Number", False, RuntimeContextVariable.NO_INCREMENT))
         #generate unique Http Port :
-        self.__httpPort = str(self.__httpPortInt + self.__randomnum)
+        ##self.__httpPort = str(self.__httpPortInt + self.__randomnum)
         
         self.__baseUrl = self.__hostIp+":"+self.__tcpPort
         self.__baseUrlHttp = "http://"+self.__hostIp+":"+self.__httpPort
-        runtimeContext.addVariable(RuntimeContextVariable("HTTP_PORT", self.__httpPort, RuntimeContextVariable.STRING_TYPE, "HTTP PORT Random Number", False, RuntimeContextVariable.NO_INCREMENT))
+        ##runtimeContext.addVariable(RuntimeContextVariable("HTTP_PORT", self.__httpPort, RuntimeContextVariable.STRING_TYPE, "HTTP PORT Random Number", False, RuntimeContextVariable.NO_INCREMENT))
         self.__master = getVariableValue('isPrimaryNode')
         if self.__master == "True":
             runtimeContext.addVariable(RuntimeContextVariable("EXPORTED_CLUSTER_ENDPOINT", "", RuntimeContextVariable.STRING_TYPE, "Master Endpoint for Clustering", False, RuntimeContextVariable.NO_INCREMENT))
@@ -364,6 +364,7 @@ class ElasticSearch:
         for dir in defaultfolders:
             createDir(dir)
             call(["chmod", "-fR", "+x", dir])
+	self.dist_pre_1x = getElasticSearchVersion().split(".") == "0"
     
     def extract(self, zipfilepath, extractiondir):
         UnZipFile().extract(zipfilepath, extractiondir)
@@ -427,13 +428,18 @@ class ElasticSearch:
         time.sleep(5)
                 
     def getStatistic(self, __statname):
+      self.lock.acquire()
+      try:
         #split stats path
         self.__stat = __statname.split(":")          
         self.__indexname = self.__stat[0]
         self.__keyname = self.__stat[1]
         logFiner("Getting Statistics for : "+__statname)    
         self.__statvalue = 0.0
-        self.__endpoint = "/_nodes/_local/"+self.__indexname+"/stats"
+	if self.dist_pre_1x:
+            self.__endpoint = "/_nodes/_local/"+self.__indexname+"/stats"
+	else:
+            self.__endpoint = "/_nodes/_local/stats/"+self.__indexname
         if self.__toggleCheck:
             self.__response = self.jsonRequest(self.__endpoint, None)
             if len(self.__response) > 0:
@@ -444,6 +450,8 @@ class ElasticSearch:
                     self.__statvalue = jpath.read(self.__response, "$.nodes.*."+self.__indexname+"."+self.__keyname)
                      
         return str(self.__statvalue[0])
+      finally:
+        self.lock.release()
          
     def doGraceFullRestart(self):
         self.__url = "http://"+self.__hostIp+":"+self.__httpPort+"/_cluster/nodes/_local/_restart"        
@@ -461,6 +469,8 @@ class ElasticSearch:
             logInfo("Archive not Found ! at : " + self.__archiveFile)
   
     def getNodeStatus(self):
+      self.lock.acquire()
+      try:
         logFiner("getNodeStatus:Enter")
         self.__returnStatus = 0
         self.__endpoint = "/_nodes/_local"
@@ -468,14 +478,18 @@ class ElasticSearch:
         if self.__toggleCheck:
             self.__resp = self.jsonRequest(self.__endpoint, None)
             if len(self.__resp) > 0:
-                self.__status = jpath.read(self.__resp, "$.ok")
-                logFiner("status : "+ str(self.__status))
-                if (self.__status):
+	        if self.dist_pre_1x:
+                    self.__status = jpath.read(self.__resp, "$.ok")
+                    logFiner("status : "+ str(self.__status))
+                    if (self.__status):
+                        logFiner("Node status is OK")
+                        self.__returnStatus = 0
+                    else:
+                        logInfo("Node status is KO")
+                        self.__returnStatus = 1
+	        else:
                     logFiner("Node status is OK")
                     self.__returnStatus = 0
-                else:
-                    logInfo("Node status is KO")
-                    self.__returnStatus = 1
             else:
                 logInfo("Node status is KO and Unreachable")
                 self.__returnStatus = 1
@@ -484,6 +498,8 @@ class ElasticSearch:
         
         logFiner("getNodeStatus:Exit")
         return self.__returnStatus
+      finally:
+        self.lock.release()
     
     def installActivationInfo(self, info):
         #logInfo("install activation info")
@@ -493,14 +509,6 @@ class ElasticSearch:
         self.__httpinfo.addRelativeUrl("/")
     
     def jsonRequest(self, endpoint, data=None):
-          self.lock.acquire()
-          try:
-	    return self.jsonRequest1(endpoint, data)
-          finally:
-            self.lock.release()
-
-
-    def jsonRequest1(self, endpoint, data=None):
         logFiner("JsonRequest:Enter")
         self.__url = urlparse(self.__baseUrlHttp+str(endpoint))
         self.__headers = {'Accept': 'application/json', 'Content-Type': 'application/json; charset=UTF-8'}

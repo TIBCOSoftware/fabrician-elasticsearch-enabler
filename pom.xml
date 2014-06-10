@@ -2,17 +2,17 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fabrician.enabler</groupId>
-    <artifactId>elasticsearch</artifactId>
+    <artifactId>elasticsearch_${distribution.version}</artifactId>
     <name>ElasticSearch Enabler</name>
     <packaging>pom</packaging>
     <version>1.0</version>
     <description></description>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <distribution.basename>elasticsearch-0.90.2</distribution.basename>
+        <distribution.version>0.90.2</distribution.version>
+        <distribution.basename>elasticsearch-${distribution.version}</distribution.basename>
         <distribution.type>zip</distribution.type>
         <distribution.os>all</distribution.os>
-        <distribution.version>0.90.2</distribution.version>
         <distribution.location>/downloads/</distribution.location>
     </properties>
 
@@ -81,7 +81,7 @@
                                 <id>distribution</id>
                                 <configuration>
                                     <appendAssemblyId>false</appendAssemblyId>
-                                    <finalName>${project.artifactId}-${distribution.os}-${distribution.version}-distribution-gridlib</finalName>
+                                    <finalName>elasticsearch-${distribution.os}-${distribution.version}-distribution-gridlib</finalName>
                                     <descriptors>
                                          <descriptor>src/main/assembly/distribution.xml</descriptor>
                                     </descriptors>

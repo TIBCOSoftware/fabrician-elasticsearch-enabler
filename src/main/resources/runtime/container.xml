@@ -34,10 +34,10 @@
  ################################################################################
 -->
 <container class="com.datasynapse.fabric.container.ExecContainer">
-    <property name="name" value="Elasticsearch Enabler"/>
-    <property name="description" value="Enabler for Elasticsearch"/>
+    <property name="name" value="Elasticsearch ${distribution.version} Enabler"/>
+    <property name="description" value="Enabler for Elasticsearch ${distribution.version}"/>
     <property name="version" value="1.0"/>
-    <property name="distributionVersion" value="0.90.2"/>
+    <property name="distributionVersion" value="5.5"/>
     <property name="blocking" value="false"/>
     <property name="supportedDomainType" value="J2EE"/>
     
@@ -98,7 +98,7 @@
         </variable>
        	<variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
             <property name="name" value="ElasticSearch_DISTRIBUTION_VERSION"/>
-            <property name="value" value="0.90.2"/>
+            <property name="value" value="${distribution.version}"/>
             <property name="description" value="ElasticSerach Distribution Version to be used"/>
         </variable>
         <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
@@ -181,13 +181,15 @@
         <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
             <property name="name" value="HTTP_PORT"/>
             <property name="value" value="18000"/>
-            <property name="type" value="String"/>
+            <property name="type" value="Environment"/>
+            <property name="autoIncrementType" value="Numeric"/>
             <property name="description" value="HTTP port for this instance"/>
         </variable>
         <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
             <property name="name" value="ES_TCP_PORT"/>
             <property name="value" value="17000"/>
-            <property name="type" value="String"/>
+            <property name="type" value="Environment"/>
+            <property name="autoIncrementType" value="Numeric"/>
         </variable>
         <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
             <property name="name" value="ES_MIN_MEM"/>
