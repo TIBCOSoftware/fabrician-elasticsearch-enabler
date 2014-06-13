@@ -21,7 +21,7 @@ SF_HOME/webapps/livecluster/deploy/resources/gridlib directory on the Silver Fab
 
 Verified ElasticSearch versions
 --------------------------------------
-The Enabler was originally developed with ElasticSearch version 0.90.2. It has recently been tested with
+The Enabler was originally developed with ElasticSearch version 0.90.2. It has recently been verified with
 ElasticSearch version 1.2.1, the latest available ElasticSearch release.
 
 Creating the ElasticSearch Enabler
@@ -34,7 +34,7 @@ mvn package
 Creating the Distribution Grid Library
 --------------------------------------
 The Distribution Grid Library is created by performing the following steps:
-* Download the Elasticsearch binaries from (Note: Replace version 0.90.2 with the ElasticSearch you choose): https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-0.90.2.zip
+* Download the Elasticsearch binaries from (Note: Replace version 1.2.1 with the ElasticSearch you choose): https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.2.1.zip
 * Build the maven project with the location of the archive, the archive's base name, the archive type, the 
       operating system target and optionally the version. 
        
@@ -44,10 +44,10 @@ NOTE: As of now, only 64-bit linux has been tested !
 NOTE: Linux distros being tested : Centos 6.X, DEBIAN 7.X , RHEL 6.X
 ******************************************************************************
 ```bash
-#Note: Replace version 0.90.2 with the ElasticSearch version you choose
+#Note: Replace version 1.2.1 with the ElasticSearch version you choose
 mvn package -Ddistribution.location=/home/you/Downloads/ \
 -Ddistribution.type=zip \
--Ddistribution.version=0.90.2 -Ddistribution.os=all
+-Ddistribution.version=1.2.1 -Ddistribution.os=all
 ```
 The distribution.location path should end in the appropriate path-separator for your operating system (either "/" or "\\")
 If running maven on Windows, make sure to to double-escape the backslash path separators for the 
@@ -55,15 +55,15 @@ distribution.location property: -Ddistribution.location=C:\\Users\\you\\Download
 
 or you can do manually :
 ```bash
-#NOTE: Replace version 0.90.2 with the ElasticSearch version you choose
+#NOTE: Replace version 1.2.1 with the ElasticSearch version you choose
 cd src/main/assembly/distribution
-wget "https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-0.90.2.zip"
-unzip elasticsearch-0.90.2.zip
-rm -f elasticsearch-0.90.2.zip
-mv elasticsearch-0.90.2 elasticsearch
+wget "https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.2.1.zip"
+unzip elasticsearch-1.2.1.zip
+rm -f elasticsearch-1.2.1.zip
+mv elasticsearch-1.2.1 elasticsearch
 #String replace ${distribution.version} in grid-library.xml
-cat grid-library.xml | sed 's/${distribution.version}/0.90.2/g' > grid-library.tmp; mv grid-library.tmp grid-library.xml
-zip -r elasticsearch-0.90.2-distribution.zip elasticsearch-0.90.2 grid-library.xml
+cat grid-library.xml | sed 's/${distribution.version}/1.2.1/g' > grid-library.tmp; mv grid-library.tmp grid-library.xml
+zip -r elasticsearch-0.90.2-distribution.zip elasticsearch-1.2.1 grid-library.xml
 ```
 
 Then upload this distribution to the Tibco Silver Fabric Manager
