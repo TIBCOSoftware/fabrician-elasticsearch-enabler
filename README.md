@@ -63,7 +63,7 @@ rm -f elasticsearch-1.2.1.zip
 mv elasticsearch-1.2.1 elasticsearch
 #String replace ${distribution.version} in grid-library.xml
 cat grid-library.xml | sed 's/${distribution.version}/1.2.1/g' > grid-library.tmp; mv grid-library.tmp grid-library.xml
-zip -r elasticsearch-0.90.2-distribution.zip elasticsearch-1.2.1 grid-library.xml
+zip -r elasticsearch-1.2.1-distribution.zip elasticsearch-1.2.1 grid-library.xml
 ```
 
 Then upload this distribution to the Tibco Silver Fabric Manager
